@@ -6,8 +6,13 @@ block body
                 div.header
                     nav.d-flex.justify-content-between.align-items-center
                         h3.text-muted.mr-auto.p-2 Blog
+                        form(action="/post/create" method="GET")
+                            input(type="Submit" value="Nouvel article")
                         form(action="/post/" + post.id + "/edit" method="GET")
                             input(type="Submit" value="Editer")
+                        form(action="/" method="GET")
+                            input(type="Submit" value="Accueil")
+                        
         div.row
             div.col
                 div.bg-light.p-5
@@ -17,6 +22,6 @@ block body
         div.row
             div.col
                 span.badge.rounded-pill.bg-primary=post.cat_name
-                span.badge.rounded-pill.bg-secondary author
-                span.badge.rounded-pill.bg-secondary 01/01/01
+                span.badge.rounded-pill.bg-secondary Elias la menace
+                span.badge.rounded-pill.bg-secondary 04/05/21
                 p=post.content

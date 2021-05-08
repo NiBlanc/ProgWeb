@@ -26,3 +26,5 @@ block body
         div.row
             form(action="/post/" + post.id + "/delete" method="POST")
                 input(type="Submit" value="Delete")
+            form(action="/post/" + post.id method="GET")
+                input(type="Submit" value="Retour")

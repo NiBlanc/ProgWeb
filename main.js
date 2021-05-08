@@ -21,7 +21,7 @@ const sess = {
 
 const authentification = {
   username: "username",
-  password: "password"
+  password: "password"    // les identifiants à rentrer pour se connecter
 }
 
 
@@ -46,6 +46,11 @@ const categories = [
 app.get('/login',(req, res) => {
   res.render('login', {logged: req.session.logged})
 })
+//à compléter
+app.post('/sign_in',(req, res) => {
+  req.session.logged = false
+  res.redirect(302,'/sign_in')
+})
 
 app.post('/login',(req, res) => {
   const username = req.body.username
@@ -60,12 +65,16 @@ app.post('/login',(req, res) => {
       errors: "Le login est incorret",
       logged: false
     }
+  // else if(button === true)
+  //  // si on appuie sur le bouton retour alors rediriger ici ?
+  //)
   } else {
     req.session.logged = true
     data = {
       success: "Vous êtes log",
       logged: true
     }
+    //res.redirect(302,'/') //redirige automatiquement vers l'accueil mais fonctionne pas
   }
   res.render('login',data)
 })

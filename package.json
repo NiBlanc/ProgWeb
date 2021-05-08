@@ -1,22 +1,21 @@
 {
-  "name": "tp2",
+  "name": "blodit103",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "body-parser": "^1.19.0",
-    "connect": "^3.7.0",
     "connect-sqlite3": "^0.9.11",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "jade": "^1.11.0",
-    "session": "^0.1.0",
-    "sqlite": "^4.0.21",
-    "sqlite3": "^5.0.2"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC"
+    "sqlite": "^4.0.19",
+    "sqlite3": "^5.0.1"
+  }
 }
