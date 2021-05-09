@@ -32,7 +32,7 @@ async function createPosts(db){
   }))
 }
 
-async function createUsers(db){
+/* async function createUsers(db){
   const insertRequest = await db.prepare("INSERT INTO users(user_id, login, password) VALUES(?, ?, ?)")
   const usernames = [{
     user_id: 1,
@@ -49,33 +49,34 @@ async function createUsers(db){
     return insertRequest.run([user.user_id, user.login, user.password])
   }))
 }
+*/
 
 async function createTables(db){
   const cat = db.run(`
-    CREATE TABLE IF NOT EXISTS categories(
-      cat_id INTEGER PRIMARY KEY,
-      cat_name varchar(255)
-    )
+    CREATE TABLE IF NOT EXISTS categories (
+      cat_id integer PRIMARY KEY AUTOINCREMENT,
+      cat_name varchar
+    );
   `)
 
   const user = db.run(`
-  CREATE TABLE IF NOT EXISTS users(
-    user_id INTEGER PRIMARY KEY,
-    login varchar(255),
-    password varchar(255)
-  )
-`)
+    CREATE TABLE IF NOT EXISTS users (
+      user_id integer PRIMARY KEY AUTOINCREMENT,
+      login varchar,
+      password varchar
+    );
+  `)
 
   const post = db.run(`
-        CREATE TABLE IF NOT EXISTS posts(
-          id INTEGER PRIMARY KEY,
-          name varchar(255),
-          category int,
-          content text,
-          author_id int,
-          FOREIGN KEY(author_id) REFERENCES users(user_id),
-          FOREIGN KEY(category) REFERENCES categories(cat_id)
-        )
+    CREATE TABLE IF NOT EXISTS posts (
+      id integer PRIMARY KEY AUTOINCREMENT,
+      name varchar,
+      category integer,
+      content text,
+      author_id integer,
+      FOREIGN KEY(author_id) REFERENCES users(user_id),
+      FOREIGN KEY(category) REFERENCES categories(cat_id)
+    );
   `)
 
   return await Promise.all([cat,post,user])
@@ -96,5 +97,5 @@ async function dropTables(db){
   await createTables(db)
   await createCategories(db)
   await createPosts(db)
-  await createUsers(db)
+  //await createUsers(db)
 })()
