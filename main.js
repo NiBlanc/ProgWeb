@@ -49,19 +49,47 @@ const users = [
   {id: 'cat2', name: 'Catégorie 2', link:"/cat2"}
 ]
 
-app.get('/login',(req, res) => {
-  res.render('login', {logged: req.session.logged})
+
+//                      //
+//  Gestion des comptes //
+//                      //
+
+
+// Création de compte
+
+app.get('/sign_in',(req, res) => {
+  res.render('sign_in', {logged: req.session.logged})
 })
 
-//à compléter
-app.post('/sign_in',(req, res) => {
-  req.session.logged = false
-  res.redirect(302,'/sign_in')
+app.post('/sign_in',async (req, res) => {
+
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+
+  const db = await openDb()
+  const username = req.body.username
+  const email = req.body.email
+  const password = req.body.password
+  const post = await db.run(`
+    INSERT INTO users(login,password,email)
+    VALUES(?, ?, ?)
+  `,[username, password, email])
+  res.redirect("/")
+})
+
+//  Connexion
+
+app.get('/login',(req, res) => {
+  res.render('login', {logged: req.session.logged})
 })
 
 app.post('/login',(req, res) => {
   const username = req.body.username
   const password = req.body.password
+  console.log({username})
+  console.log({password})
   let data = {
   }
   if(
@@ -90,6 +118,13 @@ app.post('/logout',(req, res) => {
   res.redirect(302,'/login')
 })
 
+
+//                      //
+//  Gestion des posts   //
+//                      //
+
+
+// Création de post
 app.get('/post/create', async (req, res) => {
   if(!req.session.logged){
     res.redirect(302,'/login')
@@ -132,6 +167,8 @@ app.get('/post/:id', async (req, res) => {
   res.render("post",{post: post})
 })
 
+//  Editer un post
+
 app.get('/post/:id/edit', async (req, res) => {
   if(!req.session.logged){
     res.redirect(302,'/login')
@@ -171,6 +208,8 @@ app.post('/post/:id/edit', async (req, res) => {
   res.redirect("/post/" + id)
 })
 
+//  Supprimer un post
+
 app.post('/post/:id/delete', async (req, res) => {
   if(!req.session.logged){
     res.redirect(302,'/login')
@@ -186,19 +225,13 @@ app.post('/post/:id/delete', async (req, res) => {
   res.redirect("/")
 })
 
-app.get('/users', async (req, res) => {
-  if(!req.session.logged){
-    res.redirect(302,'/login')
-    return
-  }
 
-  const db = await openDb()
-  const users = await db.all(`
-    SELECT * FROM users
-  `)
-  res.render("users", {users})
-})
 
+//                           //
+//  Gestion des catégories   //
+//                           //
+
+//Affichage des catégories disponibles
 app.get('/categories', async (req, res) => {
   if(!req.session.logged){
     res.redirect(302,'/login')
@@ -279,6 +312,26 @@ app.get('/:cat?', async (req, res) => {
   }
   res.render("blog",{categories: categories, categoryActive: categoryObjectActive, posts: posts, logged: req.session.logged})
 })
+
+//                //
+//  Affichage db  //
+//                //
+
+
+//Utilisateurs
+app.get('/users', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+
+  const db = await openDb()
+  const users = await db.all(`
+    SELECT * FROM users
+  `)
+  res.render("users", {users})
+})
+
 
 app.listen(port,  () => {
   console.log(`Example app listening at http://localhost:${port}`)

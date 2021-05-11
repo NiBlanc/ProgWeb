@@ -9,7 +9,7 @@ block body
         div.row.mt-5
             div.col
               ul
-                each cat, index in categories
+                each cat in categories
                   li
                     a(href="/category/" + cat.cat_id)=cat.cat_name
         a(href="/")
