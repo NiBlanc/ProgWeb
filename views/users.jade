@@ -1,0 +1,16 @@
+extends layout
+block body
+    div.container-sm
+        div.row
+            div.col
+                div.header
+                    nav.d-flex.justify-content-between.align-items-center
+                        h3.text-muted.mr-auto.p-2 Blog
+        div.row.mt-5
+            div.col
+              ul
+                each user, index in users
+                  li
+                    a(href="/user/" + user.user_id=user.login
+        a(href="/")
+                button Vers l'accueil

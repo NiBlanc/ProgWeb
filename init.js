@@ -1,6 +1,6 @@
 const {openDb} = require("./db")
 
-const tablesNames = ["categories","posts"]
+const tablesNames = ["categories","posts","users"]
 
 
 
@@ -32,24 +32,25 @@ async function createPosts(db){
   }))
 }
 
-/* async function createUsers(db){
-  const insertRequest = await db.prepare("INSERT INTO users(user_id, login, password) VALUES(?, ?, ?)")
+async function createUsers(db){
+  const insertRequest = await db.prepare("INSERT INTO users(login, password, email) VALUES(?, ?, ?)")
   const usernames = [{
-    user_id: 1,
     login: "max",
-    password: "max"
+    password: "max",
+    email: "max@max.fr"
   },
     {
-      user_id: 2,
       login: "bob",
-      password: "bob"
+      password: "bob",
+      email: "bob@bob.com"
     }
   ]
   return await Promise.all(usernames.map(user => {
-    return insertRequest.run([user.user_id, user.login, user.password])
+    return insertRequest.run([user.login, user.password, user.email])
   }))
 }
-*/
+
+
 
 async function createTables(db){
   const cat = db.run(`
@@ -63,7 +64,8 @@ async function createTables(db){
     CREATE TABLE IF NOT EXISTS users (
       user_id integer PRIMARY KEY AUTOINCREMENT,
       login varchar,
-      password varchar
+      password varchar,
+      email varchar
     );
   `)
 
@@ -97,5 +99,5 @@ async function dropTables(db){
   await createTables(db)
   await createCategories(db)
   await createPosts(db)
-  //await createUsers(db)
+  await createUsers(db)
 })()

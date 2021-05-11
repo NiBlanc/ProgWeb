@@ -8,7 +8,7 @@ block body
                         h3.text-muted.mr-auto.p-2 Blog
                         ul.nav.nav-pills.justify-content-end
                             li.nav-item
-                                a.nav-link(href="/" class=!categoryActive ? "active" : "") Acceuil
+                                a.nav-link(href="/" class=!categoryActive ? "active" : "") Accueil
                             each cat in categories
                                 li.nav-item
                                     a.nav-link(href="/"+ cat.cat_id class=categoryActive && categoryActive.cat_id  === cat.cat_id ? "active" : "")=cat.cat_name
@@ -20,11 +20,13 @@ block body
                             else
                                 li.nav-item
                                     a.nav-link(href="/login") Se connecter
+                            li.nav-item
+                                a.nav-link(href="/users") Utilisateurs
         div.row
             div.col
                 div.bg-light.p-5
                     div.container
-                        h1.text-center=categoryActive ? categoryActive.cat_name : "Acceuil"
+                        h1.text-center=categoryActive ? categoryActive.cat_name : "Accueil"
 
         div.row.mt-5
             div.col

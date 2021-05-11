@@ -43,9 +43,16 @@ const categories = [
   {id: 'cat2', name: 'Catégorie 2', link:"/cat2"}
 ]
 
+const users = [
+  {id: 'home', name: 'Accueil', link:"/"},
+  {id: 'cat1', name: 'Catégorie 1', link:"/cat1"},
+  {id: 'cat2', name: 'Catégorie 2', link:"/cat2"}
+]
+
 app.get('/login',(req, res) => {
   res.render('login', {logged: req.session.logged})
 })
+
 //à compléter
 app.post('/sign_in',(req, res) => {
   req.session.logged = false
@@ -62,7 +69,7 @@ app.post('/login',(req, res) => {
     password !== authentification.password
   ) {
     data = {
-      errors: "Le login est incorret",
+      errors: "Le login est incorrect",
       logged: false
     }
   // else if(button === true)
@@ -177,6 +184,19 @@ app.post('/post/:id/delete', async (req, res) => {
     WHERE id = ?
   `,[id])
   res.redirect("/")
+})
+
+app.get('/users', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+
+  const db = await openDb()
+  const users = await db.all(`
+    SELECT * FROM users
+  `)
+  res.render("users", {users})
 })
 
 app.get('/categories', async (req, res) => {
