@@ -1,4 +1,4 @@
-extends layout
+include ./includes/header.jade
 block body
     div.container
         form(method="POST" action="/sign_in")
@@ -15,8 +15,6 @@ block body
                 input(type="submit" value="Sign in")
             a(href="/login")
                 button Retour
-        a(href="/")
-            button Vers l'accueil
         form(method="POST" action="/logout")
             input(type="submit" value="Logout")
 

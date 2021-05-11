@@ -28,8 +28,20 @@ app.use(session(sess))
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 app.use(express.static(path.join(__dirname, 'public')));
-app.set('views', './test_views');
+app.set('views', './views_test');
 app.set('view engine', 'jade');
+
+//                      //
+//       Accueil        //
+//                      //
+
+app.get('/',(req, res) => {
+  res.render('home', {logged: req.session.logged})
+})
+
+
+
+
 
 //                      //
 //  Gestion des comptes //
@@ -43,12 +55,6 @@ app.get('/sign_in',(req, res) => {
 })
 
 app.post('/sign_in',async (req, res) => {
-
-  if(!req.session.logged){
-    res.redirect(302,'/login')
-    return
-  }
-
   const db = await openDb()
   const username = req.body.username
   const email = req.body.email

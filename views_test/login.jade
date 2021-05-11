@@ -1,0 +1,20 @@
+include ./includes/header.jade
+block body
+    div.container
+        if !logged
+            if errors
+              div.p-2.alert.alert-danger
+                h4=errors
+            h4 LOGIN
+            form(method="POST" action="/login")
+                div.p-2
+                    label(for="username") Nom d'utilisateur
+                        input(type="text" id="username" name="username")
+                div.p-2
+                    label(for="password") Mot de passe
+                        input(type="password" id="password" name="password")
+                div.flex.p-2
+                    input(type="submit" value="Login")
+        else
+            div.p-1
+                    Vous êtes déjà connectés
