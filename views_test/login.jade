@@ -16,5 +16,7 @@ block body
                 div.flex.p-2
                     input(type="submit" value="Login")
         else
-            div.p-1
-                    Vous êtes déjà connectés
+            a(href="/")
+                button Vers l'accueil
+            form(method="POST" action="/logout")
+                input(type="submit" value="Logout")

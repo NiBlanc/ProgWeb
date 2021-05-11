@@ -72,34 +72,39 @@ app.get('/login',(req, res) => {
   res.render('login', {logged: req.session.logged})
 })
 
-app.post('/login',(req, res) => {
+app.post('/login', async(req, res) => {
   const username = req.body.username
-  const password = req.body.password
+  const pw = req.body.password
   console.log({username})
-  console.log({password})
-  let data = {
+  console.log(pw)
+
+  let data={  
   }
-  if(
-    username !== authentification.username ||
-    password !== authentification.password
-  ) {
+  const db = await openDb()
+  const users = await db.all(`
+  SELECT * FROM users 
+  WHERE login=?
+`,[username])
+
+  if(pw != users[0].password) {
     data = {
       errors: "Le login est incorrect",
       logged: false
     }
-  // else if(button === true)
-  //  // si on appuie sur le bouton retour alors rediriger ici ?
-  //)
-  } else {
+  }
+  else {
+    console.log("Ca marche")
     req.session.logged = true
     data = {
       success: "Vous êtes log",
       logged: true
     }
-    //res.redirect(302,'/') //redirige automatiquement vers l'accueil mais fonctionne pas
+    res.redirect(302,'/')
+    return
   }
   res.render('login',data)
 })
+
 app.post('/logout',(req, res) => {
   req.session.logged = false
   res.redirect(302,'/login')

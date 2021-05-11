@@ -16,25 +16,6 @@ block body
                 div.flex.p-2
                     input(type="submit" value="Login")
                 a(href="/")
-            h4
-            h4
-            h4
-            h4 SIGN IN
-            form(method="POST" action="/sign_in")
-                div.p-2
-                    label(for="s_email") Email
-                        input(type="text" id="s_username" name="s_username")
-                div.p-2
-                    label(for="s_username") Nom d'utilisateur
-                        input(type="text" id="s_username" name="s_username")
-                div.p-2
-                    label(for="s_password") Mot de passe
-                        input(type="password" id="s_password" name="s_password")
-                div.flex.p-2
-                    input(type="submit" value="S'inscrire")
-
-                a(href="/")
-                    button Retour
         else
             a(href="/")
                 button Vers l'accueil
