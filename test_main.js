@@ -59,11 +59,51 @@ app.post('/sign_in',async (req, res) => {
   const username = req.body.username
   const email = req.body.email
   const password = req.body.password
-  const post = await db.run(`
+
+  const users = await db.all(`
+  SELECT * FROM users 
+  WHERE login=?
+`,[username])
+
+  const mail = await db.all(`
+  SELECT * FROM users 
+  WHERE email=?
+  `,[email])
+
+  if(username.length==0) {
+    console.log("Veuillez rentrer un username");
+  }
+
+  else if(users.length>0) {
+    console.log("L'username existe déjà");
+  }
+
+  else if (!email.match(/[a-z0-9_\-\.]+@[a-z0-9_\-\.]+\.[a-z]+/i)) {
+    console.log(email + " n'est pas une adresse valide");
+  }
+
+  else if(email.length==0) {
+    console.log("Veuillez rentrer un email");
+  }
+
+  else if(mail.length>0) {
+    console.log("Le mail est déjà utilisé");
+  }
+
+  else if(password.length==0) {
+    console.log("Veuillez rentrer un mot de passe");
+  }
+
+  else {
+    const post = await db.run(`
     INSERT INTO users(login,password,email)
     VALUES(?, ?, ?)
-  `,[username, password, email])
-  res.redirect("/")
+    `,[username, password, email])
+    console.log("Compte créé")
+    res.redirect("/")
+    return
+  }
+  res.redirect("/sign_in")
 })
 
 //  Connexion
@@ -76,7 +116,7 @@ app.post('/login', async(req, res) => {
   const username = req.body.username
   const pw = req.body.password
   console.log({username})
-  console.log(pw)
+  console.log({pw})
 
   let data={  
   }
@@ -85,15 +125,21 @@ app.post('/login', async(req, res) => {
   SELECT * FROM users 
   WHERE login=?
 `,[username])
-
-  if(pw != users[0].password) {
+  console.log(users)
+  if(users.length==0) {
     data = {
-      errors: "Le login est incorrect",
+      errors: "Username inconnu",
+      logged: false
+    }
+  }
+  else if(pw != users[0].password) {
+    data = {
+      errors: "Mot de passe incorrect",
       logged: false
     }
   }
   else {
-    console.log("Ca marche")
+    console.log("Authentification réussie")
     req.session.logged = true
     data = {
       success: "Vous êtes log",
@@ -107,6 +153,7 @@ app.post('/login', async(req, res) => {
 
 app.post('/logout',(req, res) => {
   req.session.logged = false
+
   res.redirect(302,'/login')
 })
 
