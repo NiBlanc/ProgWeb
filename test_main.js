@@ -59,6 +59,7 @@ app.post('/sign_in',async (req, res) => {
   const username = req.body.username
   const email = req.body.email
   const password = req.body.password
+  const cpassword = req.body.cpassword
 
   const users = await db.all(`
   SELECT * FROM users 
@@ -101,6 +102,13 @@ app.post('/sign_in',async (req, res) => {
   else if(mail.length>0) {
     data = {
       errors: "L'adresse email est déjà utilisée",
+      logged: false
+    }
+  }
+
+  else if(password!=cpassword) {
+    data = {
+      errors: "Les mots de passe ne correspondent pas",
       logged: false
     }
   }

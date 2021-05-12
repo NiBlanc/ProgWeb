@@ -14,12 +14,10 @@ block body
             div.p-2
                 label(for="password") Mot de passe
                     input(type="password" id="password" name="password")
+            div.p-2
+                label(for="cpassword") Confirmer Mot de passe
+                    input(type="cpassword" id="cpassword" name="cpassword")
             div.flex.p-2
                 input(type="submit" value="Sign in")
             a(href="/login")
                 button Retour
-        form(method="POST" action="/logout")
-            input(type="submit" value="Logout")
-
-
-// ajouter les conditions sur les emails sur la validité
