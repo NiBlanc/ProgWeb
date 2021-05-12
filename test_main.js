@@ -40,7 +40,9 @@ app.get('/',(req, res) => {
 })
 
 
-
+app.get('/home2',(req, res) => {
+  res.render('home2', {logged: req.session.logged})
+})
 
 
 //                      //

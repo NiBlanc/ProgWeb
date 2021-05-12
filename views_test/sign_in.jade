@@ -1,23 +1,50 @@
-include ./includes/header.jade
-block body
-    div.container
-        if errors
+doctype html
+html(lang='fr')
+  head
+    meta(charset='utf-8')
+    title Bootstrap Simple Login Form
+    link(rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css')
+    script(src='https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js')
+    script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js')
+    style.
+      .login-form {
+      width: 340px;
+      margin: 50px auto;
+      }
+      .login-form form {
+      margin-bottom: 15px;
+      background: #f7f7f7;
+      box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+      padding: 30px;
+      }
+      .login-form h2 {
+      margin: 0 0 15px;
+      }
+      .form-control, .btn {
+      min-height: 38px;
+      border-radius: 2px;
+      }
+      .btn {
+      font-size: 15px;
+      font-weight: bold;
+      }
+  body
+    .login-form
+      form(method="POST" action="/sign_in")
+        h2.text-center Créer un compte
+        .form-group
+          input.form-control(type="text" placeholder="Nom d'utilisateur" id="username" name="username")
+        .form-group
+          input.form-control(type="text" placeholder="Email" id="email" name="email")
+        .form-group
+            input.form-control(type="password" placeholder="Mot de passe" id="password" name="password")
+        .form-group
+            input.form-control(type="password" placeholder="Confirmer le mot de passe" id="cpassword" name="cpassword")
+        .form-group
+          button.btn.btn-primary.btn-block(type='submit') Créer un compte
+        .clearfix
+      if errors
             div.p-2.alert.alert-danger
-                h4=errors
-        form(method="POST" action="/sign_in")
-            div.p-2
-                label(for="username") Nom d'utilisateur
-                    input(type="text" id="username" name="username")
-            div.p-2
-                label(for="email") email
-                    input(type="text" id="email" name="email")
-            div.p-2
-                label(for="password") Mot de passe
-                    input(type="password" id="password" name="password")
-            div.p-2
-                label(for="cpassword") Confirmer Mot de passe
-                    input(type="cpassword" id="cpassword" name="cpassword")
-            div.flex.p-2
-                input(type="submit" value="Sign in")
-            a(href="/login")
-                button Retour
+                h4.text-center=errors
+      p.text-center
+        a(href='/login') Vous avez déjà un compte ?

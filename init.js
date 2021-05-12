@@ -1,6 +1,6 @@
 const {openDb} = require("./db")
 
-const tablesNames = ["categories","posts","users"]
+const tablesNames = ["categories","posts","users","commentaries"]
 
 
 
@@ -9,6 +9,19 @@ async function createCategories(db){
   const names = ["Categorie 1", "Categorie 2"]
   return await Promise.all(names.map(cat => {
     return insertRequest.run(cat)
+  }))
+}
+
+async function createCommentaries(db){
+  const insertRequest = await db.prepare("INSERT INTO commentaries(p_id, content, author_id) VALUES(?, ?, ?)")
+  const comms = [{
+    p_id: 1,
+    content: "Excellent site pour faire des recherches!",
+    author_id: 2
+  }
+  ]
+  return await Promise.all(comms.map(commentary => {
+    return insertRequest.run([commentary.p_id, commentary.content, commentary.author_id])
   }))
 }
 
@@ -75,13 +88,26 @@ async function createTables(db){
       name varchar,
       category integer,
       content text,
+      post_date date,
       author_id integer,
       FOREIGN KEY(author_id) REFERENCES users(user_id),
       FOREIGN KEY(category) REFERENCES categories(cat_id)
     );
   `)
 
-  return await Promise.all([cat,post,user])
+  const commentary = db.run(`
+    CREATE TABLE IF NOT EXISTS commentaries (
+      com_id integer PRIMARY KEY AUTOINCREMENT,
+      p_id integer,
+      content text,
+      author_id integer,
+      com_date date,
+      FOREIGN KEY(p_id) REFERENCES categories(id),
+      FOREIGN KEY(author_id) REFERENCES users(user_id)
+    );
+`)
+
+  return await Promise.all([cat,post,user,commentary])
 }
 
 
@@ -100,4 +126,5 @@ async function dropTables(db){
   await createCategories(db)
   await createPosts(db)
   await createUsers(db)
+  await createCommentaries(db)
 })()
