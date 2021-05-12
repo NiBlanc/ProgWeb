@@ -71,27 +71,45 @@ app.post('/sign_in',async (req, res) => {
   `,[email])
 
   if(username.length==0) {
-    console.log("Veuillez rentrer un username");
+    data = {
+      errors: "Veuillez rentrer un username",
+      logged: false
+    }
   }
 
   else if(users.length>0) {
-    console.log("L'username existe déjà");
+    data = {
+      errors: "L'username existe déjà",
+      logged: false
+    }
   }
 
   else if (!email.match(/[a-z0-9_\-\.]+@[a-z0-9_\-\.]+\.[a-z]+/i)) {
-    console.log(email + " n'est pas une adresse valide");
+    data = {
+      errors: "L'email n'est pas valide",
+      logged: false
+    }
   }
 
   else if(email.length==0) {
-    console.log("Veuillez rentrer un email");
+    data = {
+      errors: "Veuillez rentrer une adresse email",
+      logged: false
+    }
   }
 
   else if(mail.length>0) {
-    console.log("Le mail est déjà utilisé");
+    data = {
+      errors: "L'adresse email est déjà utilisée",
+      logged: false
+    }
   }
 
   else if(password.length==0) {
-    console.log("Veuillez rentrer un mot de passe");
+    data = {
+      errors: "Veuillez rentrer un mot de passe",
+      logged: false
+    }
   }
 
   else {
@@ -100,10 +118,11 @@ app.post('/sign_in',async (req, res) => {
     VALUES(?, ?, ?)
     `,[username, password, email])
     console.log("Compte créé")
+    req.session.logged = true
     res.redirect("/")
     return
   }
-  res.redirect("/sign_in")
+  res.render("sign_in",data)
 })
 
 //  Connexion

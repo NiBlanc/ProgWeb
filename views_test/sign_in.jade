@@ -1,6 +1,9 @@
 include ./includes/header.jade
 block body
     div.container
+        if errors
+            div.p-2.alert.alert-danger
+                h4=errors
         form(method="POST" action="/sign_in")
             div.p-2
                 label(for="username") Nom d'utilisateur
