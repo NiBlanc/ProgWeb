@@ -31,19 +31,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('views', './views_test');
 app.set('view engine', 'jade');
 
-//                      //
-//       Accueil        //
-//                      //
-
-app.get('/',(req, res) => {
-  res.render('home', {logged: req.session.logged})
-})
-
-
-app.get('/home2',(req, res) => {
-  res.render('home2', {logged: req.session.logged})
-})
-
 
 //                      //
 //  Gestion des comptes //
@@ -142,6 +129,7 @@ app.get('/login',(req, res) => {
 })
 
 app.post('/login', async(req, res) => {
+  console.log("Salut")
   const username = req.body.username
   const pw = req.body.password
   console.log({username})
@@ -181,11 +169,78 @@ app.post('/login', async(req, res) => {
 })
 
 app.post('/logout',(req, res) => {
+  console.log(req.session.logged)
   req.session.logged = false
-
   res.redirect(302,'/login')
 })
 
+//                      //
+//       Accueil        //
+//                      //
+
+app.get('/:cat?', async (req, res) => {
+  if(!req.session.logged){
+    console.log("ALED")
+    res.redirect(302,'/login')
+    return
+  }
+  const db = await openDb()
+  const categoryActive = req.params.cat ? req.params.cat : 'home'
+  const categories = await db.all(`
+    SELECT * FROM categories
+  `)
+  const categoryObjectActive = categories.find(({cat_id}) => cat_id.toString() === categoryActive)
+  let posts = []
+  if(categoryActive === "home"){
+    posts = await db.all(`
+    SELECT * FROM posts
+    LEFT JOIN categories on categories.cat_id = posts.category
+  `)
+  } else {
+    posts = await db.all(`
+      SELECT * FROM posts
+      LEFT JOIN categories on categories.cat_id = posts.category
+      WHERE category = ?
+  `, [categoryActive])
+  }
+  console.log(categories)
+  res.render("home",{categories: categories, categoryActive: categoryObjectActive, posts: posts, logged: req.session.logged})
+})
+
+//                            //
+//   Gestion des catégories   //
+//                            //
+
+app.get('/category/create', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+  const db = await openDb()
+
+  const categories = await db.all(`
+    SELECT * FROM categories
+  `)
+  res.render("post-create",{categories: categories})
+})
+
+app.post('/category/create', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+
+  const db = await openDb()
+  const id = req.params.id
+  const name = req.body.name
+  const content = req.body.content
+  const category = req.body.category
+  const post = await db.run(`
+    INSERT INTO posts(name,content,category)
+    VALUES(?, ?, ?)
+  `,[name, content, category])
+  res.redirect("/post/" + post.lastID)
+})
 
 app.listen(port,  () => {
   console.log(`Example app listening at http://localhost:${port}`)

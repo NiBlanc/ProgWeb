@@ -6,7 +6,7 @@ const tablesNames = ["categories","posts","users","commentaries"]
 
 async function createCategories(db){
   const insertRequest = await db.prepare("INSERT INTO categories(cat_name) VALUES(?)")
-  const names = ["Categorie 1", "Categorie 2"]
+  const names = ["Categorie 1", "Categorie 2", "Categorie 3"]
   return await Promise.all(names.map(cat => {
     return insertRequest.run(cat)
   }))
