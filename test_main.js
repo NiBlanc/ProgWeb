@@ -204,6 +204,7 @@ app.get('/:cat?', async (req, res) => {
   `, [categoryActive])
   }
   console.log(categories)
+  //res.render("categories", {logged: req.session.logged})
   res.render("home",{categories: categories, categoryActive: categoryObjectActive, posts: posts, logged: req.session.logged})
 })
 
@@ -221,7 +222,7 @@ app.get('/category/create', async (req, res) => {
   const categories = await db.all(`
     SELECT * FROM categories
   `)
-  res.render("post-create",{categories: categories})
+  res.render("cat-create",{categories: categories})
 })
 
 app.post('/category/create', async (req, res) => {
@@ -233,13 +234,46 @@ app.post('/category/create', async (req, res) => {
   const db = await openDb()
   const id = req.params.id
   const name = req.body.name
-  const content = req.body.content
-  const category = req.body.category
+
+  const cate = await db.all(`
+  SELECT * FROM categories 
+  WHERE cat_name=?
+`,[name])
+
+  if(name.length==0){
+    data = {
+      errors: "Veuillez rentrer un nom pour la catégorie",
+    }
+  }
+
+  else if(cate.length>0){
+    data = {
+      errors: "Ce nom est déjà utilisé",
+    }
+  }
+
+  else{
   const post = await db.run(`
-    INSERT INTO posts(name,content,category)
-    VALUES(?, ?, ?)
-  `,[name, content, category])
-  res.redirect("/post/" + post.lastID)
+    INSERT INTO categories(cat_id,cat_name)
+    VALUES(?, ?)
+  `,[id, name])
+  res.redirect("/")
+  }
+  res.render("cat-create",data)
+})
+
+app.post('/category/:id/delete', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+  const id = req.params.id
+  const db = await openDb()
+  const category = await db.get(`
+    DELETE FROM categories
+    WHERE cat_id = ?
+  `,[id])
+  res.redirect(302,'/')
 })
 
 app.listen(port,  () => {
