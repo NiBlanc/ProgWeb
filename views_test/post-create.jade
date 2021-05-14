@@ -1,0 +1,28 @@
+extends layout
+block body
+    div.container-sm
+        div.row
+            div.col
+                div.header
+                    nav.d-flex.justify-content-between.align-items-center
+                        h3.text-muted.mr-auto.p-2 Blog
+        form(action="/post/create" method="POST")
+            div.row
+                input(type="Submit" value="Sauvegarder")
+            div.row
+                div.col
+                    div.bg-light.p-5
+                        input(id="name" name="name")
+            div.row
+                div
+                    h3.text-muted.mr-auto.p-2=cat
+            div.row
+                div.col
+                    span.badge.rounded-pill.bg-primary
+                    span.badge.rounded-pill.bg-secondary author
+                    span.badge.rounded-pill.bg-secondary 01/01/01
+                    div
+                        textarea(id="content" name="content")
+        div.row
+            a(href="/")
+                button Cancel

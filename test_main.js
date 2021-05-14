@@ -230,9 +230,43 @@ app.post('/category/create', async (req, res) => {
   res.render("cat-create",data)
 })
 
+
 //                      //
-//       Accueil        //
+//  Création de posts   //
 //                      //
+
+
+app.get('/cat_:cat?/post/create', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+  res.render("post-create",{cat: req.params.cat})
+})
+
+app.post('/cat_:cat?/post/create', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+
+  const db = await openDb()
+  const id = req.params.id
+  const name = req.body.name
+  const content = req.body.content
+  const post = await db.run(`
+    INSERT INTO posts(name,content,category)
+    VALUES(?, ?, ?)
+  `,[name, content, req.params.cat])
+  res.redirect("/cat"+ req.params.cat +"/post/" + post.lastID)
+})
+
+
+
+
+//         Accueil        //
+//           et           //
+//       Catégories       //
 
 
 app.get('/', async (req, res) => {              //Page d'accueil du site
