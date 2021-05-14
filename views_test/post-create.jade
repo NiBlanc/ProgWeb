@@ -5,8 +5,8 @@ block body
             div.col
                 div.header
                     nav.d-flex.justify-content-between.align-items-center
-                        h3.text-muted.mr-auto.p-2 Blog
-        form(action="/post/create" method="POST")
+                        h3.text-muted.mr-auto.p-2=cat_name
+        form(action="../post/create" method="POST")
             div.row
                 input(type="Submit" value="Sauvegarder")
             div.row

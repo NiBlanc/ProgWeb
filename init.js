@@ -28,8 +28,8 @@ async function createCommentaries(db){
 async function createPosts(db){
   const insertRequest = await db.prepare("INSERT INTO posts(name, content, category, author_id) VALUES(?, ?, ?, ?)")
   const contents = [{
-    name: "Article 1",
-    content: "Lorem lipsum, Lorem lipsum Lorem lipsum Lorem lipsum",
+    name: "Post de test",
+    content: "Voici le premier article",
     category: 1,
     author_id: 1
   },

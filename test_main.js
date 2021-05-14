@@ -142,6 +142,7 @@ app.post('/login', async(req, res) => {
   SELECT * FROM users 
   WHERE login=?
 `,[username])
+
   console.log(users)
   if(users.length==0) {
     data = {
@@ -203,7 +204,7 @@ app.post('/category/create', async (req, res) => {
   const id = req.params.id
   const name = req.body.name
 
-  const cate = await db.all(`
+  const cat = await db.all(`
   SELECT * FROM categories 
   WHERE cat_name=?
 `,[name])
@@ -214,7 +215,7 @@ app.post('/category/create', async (req, res) => {
     }
   }
 
-  else if(cate.length>0){
+  else if(cat.length>0){
     data = {
       errors: "Ce nom est déjà utilisé",
     }
@@ -241,7 +242,15 @@ app.get('/cat_:cat?/post/create', async (req, res) => {
     res.redirect(302,'/login')
     return
   }
-  res.render("post-create",{cat: req.params.cat})
+
+  const db = await openDb()
+  const cat = await db.all(`
+  SELECT * FROM categories 
+  WHERE cat_id=?
+`,[req.params.cat])
+
+  console.log(cat)
+  res.render("post-create",{cat_id: req.params.cat, cat_name:cat[0].cat_name})
 })
 
 app.post('/cat_:cat?/post/create', async (req, res) => {
@@ -258,10 +267,21 @@ app.post('/cat_:cat?/post/create', async (req, res) => {
     INSERT INTO posts(name,content,category)
     VALUES(?, ?, ?)
   `,[name, content, req.params.cat])
-  res.redirect("/cat"+ req.params.cat +"/post/" + post.lastID)
+  res.redirect("/cat_"+ req.params.cat +"/post/" + post.lastID)
 })
 
 
+//Affichage d'un unique post
+app.get('/cat_:cat?/post/:id', async (req, res) => {
+  const db = await openDb()
+  const id = req.params.id
+  const post = await db.get(`
+    SELECT * FROM posts
+    LEFT JOIN categories on categories.cat_id = posts.category
+    WHERE id = ?
+  `,[id])
+  res.render("post",{post: post})
+})
 
 
 //         Accueil        //
