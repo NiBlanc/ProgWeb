@@ -174,43 +174,11 @@ app.post('/logout',(req, res) => {
   res.redirect(302,'/login')
 })
 
-//                      //
-//       Accueil        //
-//                      //
-
-app.get('/:cat?', async (req, res) => {
-  if(!req.session.logged){
-    console.log("ALED")
-    res.redirect(302,'/login')
-    return
-  }
-  const db = await openDb()
-  const categoryActive = req.params.cat ? req.params.cat : 'home'
-  const categories = await db.all(`
-    SELECT * FROM categories
-  `)
-  const categoryObjectActive = categories.find(({cat_id}) => cat_id.toString() === categoryActive)
-  let posts = []
-  if(categoryActive === "home"){
-    posts = await db.all(`
-    SELECT * FROM posts
-    LEFT JOIN categories on categories.cat_id = posts.category
-  `)
-  } else {
-    posts = await db.all(`
-      SELECT * FROM posts
-      LEFT JOIN categories on categories.cat_id = posts.category
-      WHERE category = ?
-  `, [categoryActive])
-  }
-  console.log(categories)
-  //res.render("categories", {logged: req.session.logged})
-  res.render("home",{categories: categories, categoryActive: categoryObjectActive, posts: posts, logged: req.session.logged})
-})
-
 //                            //
 //   Gestion des catégories   //
 //                            //
+
+//Création d'une catégorie
 
 app.get('/category/create', async (req, res) => {
   if(!req.session.logged){
@@ -262,63 +230,54 @@ app.post('/category/create', async (req, res) => {
   res.render("cat-create",data)
 })
 
-app.get('/categories', async (req, res) => {
+//                      //
+//       Accueil        //
+//                      //
+
+
+app.get('/', async (req, res) => {              //Page d'accueil du site
   if(!req.session.logged){
     res.redirect(302,'/login')
     return
   }
-
   const db = await openDb()
   const categories = await db.all(`
     SELECT * FROM categories
   `)
-  res.render("categories", {categories})
+  let posts = []
+  
+  posts = await db.all(`
+    SELECT * FROM posts
+    LEFT JOIN categories on categories.cat_id = posts.category
+  `)
+
+  console.log(categories)
+  res.render("home",{categories: categories, posts: posts, logged: req.session.logged})
 })
 
-app.get('/category/:id', async (req, res) => {
+app.get('/cat_:cat?', async (req, res) => {               //Page correspondant à une catégorie
   if(!req.session.logged){
     res.redirect(302,'/login')
     return
   }
-  const id = req.params.id
   const db = await openDb()
-  const category = await db.get(`
+  const categoryActive = req.params.cat ? req.params.cat : 'home'
+  const categories = await db.all(`
     SELECT * FROM categories
-    WHERE cat_id = ?
-  `,[id])
-  res.render("category-edit", {category})
-})
+  `)
+  const categoryObjectActive = categories.find(({cat_id}) => cat_id.toString() === categoryActive)
+  let posts = []
 
-app.post('/category/:id/edit', async (req, res) => {
-  if(!req.session.logged){
-    res.redirect(302,'/login')
-    return
-  }
-  const name = req.body.name
-  const id = req.params.id
-  const db = await openDb()
-  const category = await db.get(`
-    UPDATE categories
-    SET cat_name = ?
-    WHERE cat_id = ?
-  `,[name,id])
-  res.redirect(302,'/categories')
-})
+  posts = await db.all(`
+    SELECT * FROM posts
+    LEFT JOIN categories on categories.cat_id = posts.category
+    WHERE category = ?
+  `, [categoryActive])
 
-app.post('/category/:id/delete', async (req, res) => {
-  if(!req.session.logged){
-    res.redirect(302,'/login')
-    return
-  }
-  const id = req.params.id
-  const db = await openDb()
-  const category = await db.get(`
-    DELETE FROM categories
-    WHERE cat_id = ?
-  `,[id])
-  res.redirect(302,'/categories')
+  console.log(categories)
+  //res.render("categories", {logged: req.session.logged})
+  res.render("cat",{categories: categories, categoryActive: categoryObjectActive, posts: posts, logged: req.session.logged})
 })
-
 
 app.listen(port,  () => {
   console.log(`Example app listening at http://localhost:${port}`)
