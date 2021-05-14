@@ -1,5 +1,5 @@
 extends layout
-block body
+block main
     div.container-sm
         div.row
             div.col
@@ -10,8 +10,6 @@ block body
                             input(type="Submit" value="Nouvel article")
                         form(action="/post/" + post.id + "/edit" method="GET")
                             input(type="Submit" value="Editer")
-                        form(action="/" method="GET")
-                            input(type="Submit" value="Accueil")
                         
         div.row
             div.col

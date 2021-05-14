@@ -244,13 +244,18 @@ app.get('/cat_:cat?/post/create', async (req, res) => {
   }
 
   const db = await openDb()
+
+  const categories = await db.all(`
+  SELECT * FROM categories
+`)
+
   const cat = await db.all(`
   SELECT * FROM categories 
   WHERE cat_id=?
 `,[req.params.cat])
 
   console.log(cat)
-  res.render("post-create",{cat_id: req.params.cat, cat_name:cat[0].cat_name})
+  res.render("post-create",{cat_id: req.params.cat, cat_name:cat[0].cat_name, categories:categories})
 })
 
 app.post('/cat_:cat?/post/create', async (req, res) => {
@@ -275,12 +280,17 @@ app.post('/cat_:cat?/post/create', async (req, res) => {
 app.get('/cat_:cat?/post/:id', async (req, res) => {
   const db = await openDb()
   const id = req.params.id
+
+  const categories = await db.all(`
+    SELECT * FROM categories
+  `)
+
   const post = await db.get(`
     SELECT * FROM posts
     LEFT JOIN categories on categories.cat_id = posts.category
     WHERE id = ?
   `,[id])
-  res.render("post",{post: post})
+  res.render("post",{post: post,categories: categories})
 })
 
 
