@@ -262,6 +262,49 @@ app.post('/category/create', async (req, res) => {
   res.render("cat-create",data)
 })
 
+app.get('/categories', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+
+  const db = await openDb()
+  const categories = await db.all(`
+    SELECT * FROM categories
+  `)
+  res.render("categories", {categories})
+})
+
+app.get('/category/:id', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+  const id = req.params.id
+  const db = await openDb()
+  const category = await db.get(`
+    SELECT * FROM categories
+    WHERE cat_id = ?
+  `,[id])
+  res.render("category-edit", {category})
+})
+
+app.post('/category/:id/edit', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+  const name = req.body.name
+  const id = req.params.id
+  const db = await openDb()
+  const category = await db.get(`
+    UPDATE categories
+    SET cat_name = ?
+    WHERE cat_id = ?
+  `,[name,id])
+  res.redirect(302,'/categories')
+})
+
 app.post('/category/:id/delete', async (req, res) => {
   if(!req.session.logged){
     res.redirect(302,'/login')
@@ -273,8 +316,9 @@ app.post('/category/:id/delete', async (req, res) => {
     DELETE FROM categories
     WHERE cat_id = ?
   `,[id])
-  res.redirect(302,'/')
+  res.redirect(302,'/categories')
 })
+
 
 app.listen(port,  () => {
   console.log(`Example app listening at http://localhost:${port}`)
