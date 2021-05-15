@@ -273,11 +273,16 @@ app.post('/cat_:cat?/post/create', async (req, res) => {
   const id = req.params.id
   const name = req.body.name
   const content = req.body.content
+  cat_id=req.params.cat
+
+  var date = new Date()
+  newdate =date.toISOString().slice(0, 19).replace('T', ' ')      //Pour convertir date format JS en format SQL
+
   const post = await db.run(`
-    INSERT INTO posts(name,content,category,author_id)
-    VALUES(?, ?, ?, ?)
-  `,[name, content, req.params.cat, req.session.uid])
-  res.redirect("/cat_"+ req.params.cat +"/post/" + post.lastID)
+    INSERT INTO posts(name,content,category,author_id,post_date)
+    VALUES(?, ?, ?, ?, ?)
+  `,[name, content, req.params.cat, req.session.uid, newdate])
+  res.redirect("/cat_"+ req.params.cat +"/post/" + post.lastID, {cat_id:cat_id})
 })
 
 
@@ -314,7 +319,6 @@ app.get('/', async (req, res) => {              //Page d'accueil du site
     SELECT * FROM categories
   `)
   let posts = []
-  
   posts = await db.all(`
     SELECT * FROM posts
     LEFT JOIN categories on categories.cat_id = posts.category
@@ -341,7 +345,7 @@ app.get('/cat_:cat?', async (req, res) => {               //Page correspondant Ã
     LEFT JOIN categories on categories.cat_id = posts.category
     WHERE category = ?
   `, [categoryActive])
-
+  console.log(posts)
   //res.render("categories", {logged: req.session.logged})
   res.render("cat",{categories: categories, categoryActive: categoryObjectActive, posts: posts, logged: req.session.logged, cat_id: req.params.cat})
 })

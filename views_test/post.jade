@@ -20,6 +20,6 @@ block main
         div.row
             div.col
                 span.badge.rounded-pill.bg-primary=post.cat_name
-                span.badge.rounded-pill.bg-secondary Elias la menace
-                span.badge.rounded-pill.bg-secondary 04/05/21
+                span.badge.rounded-pill.bg-secondary=post.author_id
+                span.badge.rounded-pill.bg-secondary=post.post_date
                 p=post.content

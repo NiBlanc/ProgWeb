@@ -26,22 +26,24 @@ async function createCommentaries(db){
 }
 
 async function createPosts(db){
-  const insertRequest = await db.prepare("INSERT INTO posts(name, content, category, author_id) VALUES(?, ?, ?, ?)")
+  const insertRequest = await db.prepare("INSERT INTO posts(name, content, category, post_date, author_id) VALUES(?, ?, ?, ?, ?)")
   const contents = [{
     name: "Post de test",
     content: "Voici le premier article",
     category: 1,
+    post_date: "2021-05-15 12:00:00",
     author_id: 1
   },
     {
-      name: "Article 2",
+      name: "Second post de test",
       content: "Lorem lipsum, Lorem lipsum Lorem lipsum Lorem lipsum",
       category: 2,
+      post_date: "2021-05-15 12:20:00",
       author_id: 1
     }
   ]
   return await Promise.all(contents.map(post => {
-    return insertRequest.run([post.name, post.content, post.category, post.author_id])
+    return insertRequest.run([post.name, post.content, post.category, post.post_date, post.author_id])
   }))
 }
 
@@ -88,7 +90,7 @@ async function createTables(db){
       name varchar,
       category integer,
       content text,
-      post_date datetime,
+      post_date smalldatetime,
       author_id integer,
       FOREIGN KEY(author_id) REFERENCES users(user_id),
       FOREIGN KEY(category) REFERENCES categories(cat_id)

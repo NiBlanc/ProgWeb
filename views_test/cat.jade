@@ -20,8 +20,8 @@ block main
                                     h4=posts[indexToSearch].name
                                     if !categoryActive
                                         span.badge.rounded-pill.bg-primary=posts[indexToSearch].cat_name
-                                    span.badge.rounded-pill.bg-secondary author
-                                    span.badge.rounded-pill.bg-secondary 01/01/01
+                                    span.badge.rounded-pill.bg-secondary=posts[indexToSearch].author_id
+                                    span.badge.rounded-pill.bg-secondary=posts[indexToSearch].post_date
                                     p=posts[indexToSearch].content
             if posts.length <= 0
                 div.col
