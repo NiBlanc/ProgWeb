@@ -332,7 +332,7 @@ app.post('/cat_:cat?/post/create', async (req, res) => {
   WHERE cat_id=?
 `,[req.params.cat])
 
-  res.render("post-create",{cat_id: req.params.cat, cat_name:cat[0].cat_name, categories:categories}, data)
+  res.render("post-create",{cat_id: req.params.cat, cat_name:cat[0].cat_name, categories:categories, data})
 })
 
 

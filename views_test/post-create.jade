@@ -22,5 +22,6 @@ block main
         div.row
             a(href="/cat_"+cat_id)
                 button Cancel
-        div.p-2.alert.alert-danger
-                h4.text-center=errors
+        if data.errors
+            div.p-2.alert.alert-danger
+                h4.text-center=data.errors
