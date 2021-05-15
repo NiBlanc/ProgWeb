@@ -114,8 +114,16 @@ app.post('/sign_in',async (req, res) => {
     INSERT INTO users(login,password,email)
     VALUES(?, ?, ?)
     `,[username, password, email])
-    console.log("Compte créé")
+
+    const users = await db.all(`
+    SELECT * FROM users 
+    WHERE login=?
+  `,[username])
+    
     req.session.logged = true
+    req.session.name = username
+    req.session.uid=users[0].user_id
+
     res.redirect("/")
     return
   }
@@ -125,15 +133,12 @@ app.post('/sign_in',async (req, res) => {
 //  Connexion
 
 app.get('/login',(req, res) => {
-  res.render('login', {logged: req.session.logged})
+  res.render('login')
 })
 
 app.post('/login', async(req, res) => {
-  console.log("Salut")
   const username = req.body.username
   const pw = req.body.password
-  console.log({username})
-  console.log({pw})
 
   let data={  
   }
@@ -143,7 +148,6 @@ app.post('/login', async(req, res) => {
   WHERE login=?
 `,[username])
 
-  console.log(users)
   if(users.length==0) {
     data = {
       errors: "Username inconnu",
@@ -157,12 +161,15 @@ app.post('/login', async(req, res) => {
     }
   }
   else {
-    console.log("Authentification réussie")
     req.session.logged = true
+    req.session.name = username
+    req.session.uid=users[0].user_id
+
     data = {
       success: "Vous êtes log",
       logged: true
     }
+
     res.redirect(302,'/')
     return
   }
@@ -170,7 +177,6 @@ app.post('/login', async(req, res) => {
 })
 
 app.post('/logout',(req, res) => {
-  console.log(req.session.logged)
   req.session.logged = false
   res.redirect(302,'/login')
 })
@@ -254,7 +260,6 @@ app.get('/cat_:cat?/post/create', async (req, res) => {
   WHERE cat_id=?
 `,[req.params.cat])
 
-  console.log(cat)
   res.render("post-create",{cat_id: req.params.cat, cat_name:cat[0].cat_name, categories:categories})
 })
 
@@ -269,9 +274,9 @@ app.post('/cat_:cat?/post/create', async (req, res) => {
   const name = req.body.name
   const content = req.body.content
   const post = await db.run(`
-    INSERT INTO posts(name,content,category)
-    VALUES(?, ?, ?)
-  `,[name, content, req.params.cat])
+    INSERT INTO posts(name,content,category,author_id)
+    VALUES(?, ?, ?, ?)
+  `,[name, content, req.params.cat, req.session.uid])
   res.redirect("/cat_"+ req.params.cat +"/post/" + post.lastID)
 })
 
@@ -315,7 +320,6 @@ app.get('/', async (req, res) => {              //Page d'accueil du site
     LEFT JOIN categories on categories.cat_id = posts.category
   `)
 
-  console.log(categories)
   res.render("home",{categories: categories, posts: posts, logged: req.session.logged})
 })
 
@@ -338,9 +342,8 @@ app.get('/cat_:cat?', async (req, res) => {               //Page correspondant �
     WHERE category = ?
   `, [categoryActive])
 
-  console.log(categories)
   //res.render("categories", {logged: req.session.logged})
-  res.render("cat",{categories: categories, categoryActive: categoryObjectActive, posts: posts, logged: req.session.logged})
+  res.render("cat",{categories: categories, categoryActive: categoryObjectActive, posts: posts, logged: req.session.logged, cat_id: req.params.cat})
 })
 
 app.listen(port,  () => {

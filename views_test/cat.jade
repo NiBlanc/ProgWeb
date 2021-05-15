@@ -2,11 +2,11 @@ extend layout
 
 block main
     div.row
-        div.col
+        div.col 
             div.bg-light.p-5
                 div.container
                     h1.text-center=categoryActive ? categoryActive.cat_name : "Accueil"
-            //form(action="cat_"+cat.cat_id +"./post/create" method="GET")                        //ALEDDDDDDDDDDDDDDDD
+            form(action="cat_" + cat_id + "/post/create" method="GET")
                         input(type="Submit" value="Nouvel article")
     div.row.mt-5
         div.col
@@ -16,7 +16,7 @@ block main
                     each indexToSearch in [index, index + 1, index + 2]
                         if posts[indexToSearch]
                             div.col
-                                a(href="/post/" + posts[indexToSearch].id)                        //ALEDDDDDDDD
+                                a(href= "cat_" + cat_id + "/post/" + posts[indexToSearch].id)
                                     h4=posts[indexToSearch].name
                                     if !categoryActive
                                         span.badge.rounded-pill.bg-primary=posts[indexToSearch].cat_name

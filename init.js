@@ -88,7 +88,7 @@ async function createTables(db){
       name varchar,
       category integer,
       content text,
-      post_date date,
+      post_date datetime,
       author_id integer,
       FOREIGN KEY(author_id) REFERENCES users(user_id),
       FOREIGN KEY(category) REFERENCES categories(cat_id)
