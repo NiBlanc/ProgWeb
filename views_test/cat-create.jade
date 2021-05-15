@@ -37,7 +37,7 @@ html(lang='fr')
         .form-group
           input.form-control(type="Submit" value="Sauvegarder")
         .form-group
-          button.btn.btn-primary.btn-block(type='submit') Annuler
+          a.btn.btn-primary(href='/' role='button' data-bs-toggle='button') Annuler
     if errors
       div.p-2.alert.alert-danger
         h4.text-center=errors

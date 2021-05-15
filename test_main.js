@@ -214,7 +214,8 @@ app.post('/category/create', async (req, res) => {
   SELECT * FROM categories 
   WHERE cat_name=?
 `,[name])
-
+  console.log(name)
+  console.log(cat)
   if(name.length==0){
     data = {
       errors: "Veuillez rentrer un nom pour la catégorie",
@@ -228,11 +229,18 @@ app.post('/category/create', async (req, res) => {
   }
 
   else{
-  const post = await db.run(`
-    INSERT INTO categories(cat_id,cat_name)
-    VALUES(?, ?)
-  `,[id, name])
-  res.redirect("/")
+    const new_cat = await db.run(`
+      INSERT INTO categories(cat_name)
+      VALUES(?)
+    `,[name])
+
+    const category= await db.all(`
+    SELECT * FROM categories 
+    WHERE cat_name=?
+  `,[name])
+    console.log(category)
+    res.redirect("/cat_"+category[0].cat_id)
+    return
   }
   res.render("cat-create",data)
 })
@@ -270,7 +278,6 @@ app.post('/cat_:cat?/post/create', async (req, res) => {
   }
 
   const db = await openDb()
-  const id = req.params.id
   const name = req.body.name
   const content = req.body.content
   cat_id=req.params.cat
@@ -278,11 +285,54 @@ app.post('/cat_:cat?/post/create', async (req, res) => {
   var date = new Date()
   newdate =date.toISOString().slice(0, 19).replace('T', ' ')      //Pour convertir date format JS en format SQL
 
-  const post = await db.run(`
-    INSERT INTO posts(name,content,category,author_id,post_date)
-    VALUES(?, ?, ?, ?, ?)
-  `,[name, content, req.params.cat, req.session.uid, newdate])
-  res.redirect("/cat_"+ req.params.cat +"/post/" + post.lastID, {cat_id:cat_id})
+  let data={}
+
+  const dbpost = await db.all(`
+  SELECT * FROM posts 
+  WHERE name=?
+`,[name])
+  if(name==0) {
+    data={
+      errors: "Veuillez rentrer un nom à l'article"
+    }
+  }
+
+  else if(dbpost.length>0) {
+    data={
+      errors: "Le nom de l'article est déjà utilisé"
+    } 
+  }
+
+  else if(content==0) {
+    data={
+      errors: "Veuillez rentrer du texte"
+    } 
+  }
+
+  else{
+    const post = await db.run(`
+      INSERT INTO posts(name,content,category,author_id,post_date)
+      VALUES(?, ?, ?, ?, ?)
+    `,[name, content, req.params.cat, req.session.uid, newdate])
+
+    const posted = await db.all(`
+      SELECT * FROM posts
+      WHERE post_date = ?
+    `, [newdate])
+    res.redirect(posted[0].id, "/cat_"+ req.params.cat +"/post/" , {cat_id:cat_id})
+    return
+  }
+
+  console.log(data)
+  const categories = await db.all(`
+    SELECT * FROM categories
+  `)
+  const cat = await db.all(`
+  SELECT * FROM categories 
+  WHERE cat_id=?
+`,[req.params.cat])
+
+  res.render("post-create",{cat_id: req.params.cat, cat_name:cat[0].cat_name, categories:categories}, data)
 })
 
 
