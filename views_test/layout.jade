@@ -31,13 +31,13 @@ html(lang='fr')
     body
         //Contenu navbar
         block navbar
-            nav.navbar.navbar-expand-lg.navbar-light.bg-light
+            nav.navbar.navbar-expand-lg.navbar-light.bg-light(style= "height=500px")
                 .container-fluid
                     a.navbar-brand Blog
                     button.navbar-toggler(type='button' data-bs-toggle='collapse' data-bs-target='#navbarNavDropdown' aria-controls='navbarNavDropdown' aria-expanded='false' aria-label='Toggle navigation')
                         span.navbar-toggler-icon
-                    #navbarNavDropdown.collapse.navbar-collapse
-                        ul.navbar-nav
+                    #navbarNavDropdown.collapse.navbar-collapse(class='d-flex')
+                        ul.navbar-nav(class='d-flex')
                             li.nav-item
                                 a.nav-link(href="/") Accueil
                             li.nav-item.dropdown
@@ -47,10 +47,10 @@ html(lang='fr')
                                     each cat in categories
                                         li.nav-item
                                             a.nav-link(href="/cat_"+ cat.cat_id)=cat.cat_name
-                                    form(method="GET" action="/category/create")
+                                    form(method="GET" action="/category/create" class='d-flex')
                                         button.btn.btn-primary.btn-block(type='submit') Créer une catégorie
-                            form(method="POST" action="/logout")
-                                button.btn.btn-primary.btn-block(type='submit') Se déconnecter
+                            form(method="POST" action="/logout"  class='float-right d-flex')
+                                button.btn.btn-danger.btn-block(class='float-right d-flex' type='submit') Se déconnecter
                                 
         //Contenu
         block main

@@ -6,22 +6,22 @@ block main
             div.col
                 div.header
                     nav.d-flex.justify-content-between.align-items-center
+                        h3.text-muted.mr-auto.p-2 Créer un nouvel article
                         h3.text-muted.mr-auto.p-2=cat_name
-        form(action="../post/create" method="POST")
-            div.row
-                input(type="Submit" value="Sauvegarder")
-            div.row
-                div.col
-                    div.bg-light.p-5
-                        input(id="name" name="name")
-            div.row
-                div.col
-                    span.badge.rounded-pill.bg-primary
-                    div
-                        textarea(id="content" name="content")
-        div.row
-            a(href="/cat_"+cat_id)
-                button Cancel
-        if data.errors
+        div.row.bg-light.p-5
+
+            form(action="../post/create" method="POST")
+                div.row
+                    div.row
+                        div.col
+                            input(id="name" name="name" placeholder="Nom de l'article" style="height: 40px" )
+                        div.col 
+                            button.btn.btn-primary.btn-lg(type='Submit' style="height: 50px") Sauvegarder
+                        div.col
+                            a(href="/cat_"+cat_id)
+                                button.btn.btn-secondary.btn-sm(type='button' style="height: 50px") Annuler
+                div.row
+                    textarea.form-control(id="content" name="content" placeholder="Contenu de l'article" style="height: 300px")
+        if data
             div.p-2.alert.alert-danger
                 h4.text-center=data.errors

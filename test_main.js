@@ -67,6 +67,13 @@ app.post('/sign_in',async (req, res) => {
     }
   }
 
+  else if(username.length<4) {
+    data = {
+      errors: "L'username doit contenir au moins 4 caractères",
+      logged: false
+    }
+  }
+
   else if(users.length>0) {
     data = {
       errors: "L'username existe déjà",
@@ -108,6 +115,14 @@ app.post('/sign_in',async (req, res) => {
       logged: false
     }
   }
+  
+  else if(password.length<6) {
+    data = {
+      errors: "Le mot de passe doit faire au moins 6 caractères",
+      logged: false
+    }
+  }
+
 
   else {
     const post = await db.run(`
@@ -142,15 +157,26 @@ app.post('/login', async(req, res) => {
 
   let data={  
   }
+  let users
   const db = await openDb()
-  const users = await db.all(`
-  SELECT * FROM users 
-  WHERE login=?
-`,[username])
+  if (username.match(/[a-z0-9_\-\.]+@[a-z0-9_\-\.]+\.[a-z]+/i)) {
+    users = await db.all(`
+      SELECT * FROM users 
+      WHERE email=?
+    `,[username])
+  }
+  
+  else{
+    users = await db.all(`
+      SELECT * FROM users 
+      WHERE login=?
+    `,[username])
+  }
+
 
   if(users.length==0) {
     data = {
-      errors: "Username inconnu",
+      errors: "Username ou email inconnu",
       logged: false
     }
   }
@@ -162,9 +188,9 @@ app.post('/login', async(req, res) => {
   }
   else {
     req.session.logged = true
-    req.session.name = username
+    req.session.name = users[0].login
     req.session.uid=users[0].user_id
-
+    console.log(req.session.logged, req.session.name, req.session.uid)
     data = {
       success: "Vous êtes log",
       logged: true
@@ -280,6 +306,7 @@ app.post('/cat_:cat?/post/create', async (req, res) => {
   const db = await openDb()
   const name = req.body.name
   const content = req.body.content
+  console.log(req.body)
   cat_id=req.params.cat
 
   var date = new Date()
@@ -347,10 +374,58 @@ app.get('/cat_:cat?/post/:id', async (req, res) => {
 
   const post = await db.get(`
     SELECT * FROM posts
-    LEFT JOIN categories on categories.cat_id = posts.category
+    JOIN categories on categories.cat_id = posts.category
+    JOIN users on users.user_id = posts.author_id
     WHERE id = ?
   `,[id])
+
   res.render("post",{post: post,categories: categories})
+})
+
+//Commenter un post
+app.post('/cat_:cat?/post/:id/comment', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+  console.log("Ici")
+  console(req.body)
+  const db = await openDb()
+  const comment = req.body.comment
+  cat_id=req.params.cat
+  post_id=req.params.id
+
+  var date = new Date()
+  newdate =date.toISOString().slice(0, 19).replace('T', ' ')      //Pour convertir date format JS en format SQL
+
+  let data={}
+  
+  if(comment.length==0) {
+    data={
+      errors: "Veuillez rentrer un commentaire"
+    } 
+  }
+
+  else{
+    const post = await db.run(`
+      INSERT INTO posts(content,p_id,author_id,com_date)
+      VALUES(?, ?, ?, ?)
+    `,[content, post_id, req.session.uid, newdate])
+
+    res.redirect(post_id, "/cat_"+ req.params.cat +"/post/" , {cat_id:cat_id})
+    return
+  }
+
+  console.log(data)
+  const categories = await db.all(`
+    SELECT * FROM categories
+  `)
+  const cat = await db.all(`
+  SELECT * FROM categories 
+  WHERE cat_id=?
+`,[req.params.cat])
+
+  res.render("post",{cat_id: req.params.cat, cat_name:cat[0].cat_name, categories:categories, data})
 })
 
 

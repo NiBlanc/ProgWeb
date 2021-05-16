@@ -6,7 +6,7 @@ const tablesNames = ["categories","posts","users","commentaries"]
 
 async function createCategories(db){
   const insertRequest = await db.prepare("INSERT INTO categories(cat_name) VALUES(?)")
-  const names = ["Categorie 1", "Categorie 2", "Categorie 3"]
+  const names = ["Catégorie 1", "Catégorie 2", "Catégorie 3"]
   return await Promise.all(names.map(cat => {
     return insertRequest.run(cat)
   }))
@@ -103,7 +103,7 @@ async function createTables(db){
       p_id integer,
       content text,
       author_id integer,
-      com_date date,
+      com_date smalldatetime,
       FOREIGN KEY(p_id) REFERENCES categories(id),
       FOREIGN KEY(author_id) REFERENCES users(user_id)
     );
