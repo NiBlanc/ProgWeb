@@ -190,7 +190,6 @@ app.post('/login', async(req, res) => {
     req.session.logged = true
     req.session.name = users[0].login
     req.session.uid=users[0].user_id
-    console.log(req.session.logged, req.session.name, req.session.uid)
     data = {
       success: "Vous êtes log",
       logged: true
@@ -240,8 +239,6 @@ app.post('/category/create', async (req, res) => {
   SELECT * FROM categories 
   WHERE cat_name=?
 `,[name])
-  console.log(name)
-  console.log(cat)
   if(name.length==0){
     data = {
       errors: "Veuillez rentrer un nom pour la catégorie",
@@ -264,7 +261,6 @@ app.post('/category/create', async (req, res) => {
     SELECT * FROM categories 
     WHERE cat_name=?
   `,[name])
-    console.log(category)
     res.redirect("/cat_"+category[0].cat_id)
     return
   }
@@ -306,7 +302,6 @@ app.post('/cat_:cat?/post/create', async (req, res) => {
   const db = await openDb()
   const name = req.body.name
   const content = req.body.content
-  console.log(req.body)
   cat_id=req.params.cat
 
   var date = new Date()
@@ -350,7 +345,6 @@ app.post('/cat_:cat?/post/create', async (req, res) => {
     return
   }
 
-  console.log(data)
   const categories = await db.all(`
     SELECT * FROM categories
   `)
@@ -378,8 +372,18 @@ app.get('/cat_:cat?/post/:id', async (req, res) => {
     JOIN users on users.user_id = posts.author_id
     WHERE id = ?
   `,[id])
-
-  res.render("post",{post: post,categories: categories})
+  
+  const comm = await db.all(`
+    SELECT * FROM commentaries
+    JOIN users on users.user_id = commentaries.author_id
+    WHERE p_id = ?
+    ORDER BY com_date DESC
+  `,[id])
+  let table=[]
+  for(let i=0;i < comm.length ;i++){
+    table.push(i)
+  }
+  res.render("post",{post: post,categories: categories, comm: comm,table: table})
 })
 
 //Commenter un post
@@ -388,8 +392,7 @@ app.post('/cat_:cat?/post/:id/comment', async (req, res) => {
     res.redirect(302,'/login')
     return
   }
-  console.log("Ici")
-  console(req.body)
+  console.log(req.body)
   const db = await openDb()
   const comment = req.body.comment
   cat_id=req.params.cat
@@ -400,34 +403,180 @@ app.post('/cat_:cat?/post/:id/comment', async (req, res) => {
 
   let data={}
   
-  if(comment.length==0) {
-    data={
-      errors: "Veuillez rentrer un commentaire"
-    } 
-  }
-
+  if(comment.length==0){}
   else{
-    const post = await db.run(`
-      INSERT INTO posts(content,p_id,author_id,com_date)
+    const comm = await db.run(`
+      INSERT INTO commentaries(content,p_id,author_id,com_date)
       VALUES(?, ?, ?, ?)
-    `,[content, post_id, req.session.uid, newdate])
-
-    res.redirect(post_id, "/cat_"+ req.params.cat +"/post/" , {cat_id:cat_id})
-    return
+    `,[comment, post_id, req.session.uid, newdate])
   }
-
-  console.log(data)
-  const categories = await db.all(`
-    SELECT * FROM categories
-  `)
-  const cat = await db.all(`
-  SELECT * FROM categories 
-  WHERE cat_id=?
-`,[req.params.cat])
-
-  res.render("post",{cat_id: req.params.cat, cat_name:cat[0].cat_name, categories:categories, data})
+  res.redirect("/cat_"+ req.params.cat +"/post/"+post_id)
 })
 
+//                      //
+//    Votes de posts    //
+//                      //
+
+//Upvote un post
+app.post('/cat_:cat?/post/:id/upvote', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+  const db = await openDb()
+  cat_id=req.params.cat
+  post_id=req.params.id
+
+  const voted = await db.all(`
+  SELECT * FROM pvotes
+  WHERE post_id=?
+  AND user_id=?
+  `,[post_id,req.session.uid])
+
+  if(voted.length==0){
+    //Si le vote n'existe pas on le crée
+    const vote = await db.run(`
+      INSERT INTO pvotes(post_id,user_id,vote)
+      VALUES(?, ?, ?)
+    `,[post_id, req.session.uid, 1])
+
+
+  }
+  else if(voted.vote!=1){
+    //Si le vote est différent on l'update
+    await db.get(`
+    UPDATE pvotes
+    SET vote = ?
+    WHERE post_id = ?
+    AND user_id = ?
+  `,[1,post_id,req.session.uid])
+  }
+
+  //On compte le nombre de votes
+  const votes=await db.all(`
+  SELECT * FROM pvotes
+  WHERE post_id=?
+  `,[post_id])
+
+  let count=0
+  for(let i=0;i<votes.length;i++){
+    count=count+votes[i].vote
+  }
+
+  await db.get(`
+    UPDATE posts
+    SET votes = ?
+    WHERE id = ?
+  `,[count,post_id])
+  res.redirect("/cat_"+ req.params.cat +"/post/"+post_id)
+})
+
+//Unvote un post
+app.post('/cat_:cat?/post/:id/unvote', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+  const db = await openDb()
+  cat_id=req.params.cat
+  post_id=req.params.id
+
+  const voted = await db.all(`
+  SELECT * FROM pvotes
+  WHERE post_id=?
+  AND user_id=?
+  `,[post_id,req.session.uid])
+
+  if(voted.length==0){
+    //Si le vote n'existe pas on le crée
+    const vote = await db.run(`
+      INSERT INTO pvotes(post_id,user_id,vote)
+      VALUES(?, ?, ?)
+    `,[post_id, req.session.uid, 0])
+
+
+  }
+  else if(voted.vote!=0){
+    //Si le vote est différent on l'update
+    await db.get(`
+    UPDATE pvotes
+    SET vote = ?
+    WHERE post_id = ?
+    AND user_id = ?
+  `,[0,post_id,req.session.uid])
+  }
+
+  //On compte le nombre de votes
+  const votes=await db.all(`
+  SELECT * FROM pvotes
+  WHERE post_id=?
+  `,[post_id])
+
+  let count=0
+  for(let i=0;i<votes.length;i++){
+    count=count+votes[i].vote
+  }
+
+  await db.get(`
+    UPDATE posts
+    SET votes = ?
+    WHERE id = ?
+  `,[count,post_id])
+  res.redirect("/cat_"+ req.params.cat +"/post/"+post_id)
+})
+
+//Downvote un post
+app.post('/cat_:cat?/post/:id/downvote', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+  const db = await openDb()
+  cat_id=req.params.cat
+  post_id=req.params.id
+
+  const voted = await db.all(`
+  SELECT * FROM pvotes
+  WHERE post_id=?
+  AND user_id=?
+  `,[post_id,req.session.uid])
+
+  if(voted.length==0){
+    //Si le vote n'existe pas on le crée
+    const vote = await db.run(`
+      INSERT INTO pvotes(post_id,user_id,vote)
+      VALUES(?, ?, ?)
+    `,[post_id, req.session.uid, -1])
+
+  }
+  else if(voted.vote!=-1){
+    //Si le vote est différent on l'update
+    await db.get(`
+    UPDATE pvotes
+    SET vote = ?
+    WHERE post_id = ?
+    AND user_id = ?
+  `,[-1,post_id,req.session.uid])
+  }
+
+  //On compte le nombre de votes
+  const votes=await db.all(`
+  SELECT * FROM pvotes
+  WHERE post_id=?
+  `,[post_id])
+
+  let count=0
+  for(let i=0;i<votes.length;i++){
+    count=count+votes[i].vote
+  }
+
+  await db.get(`
+    UPDATE posts
+    SET votes = ?
+    WHERE id = ?
+  `,[count,post_id])
+  res.redirect("/cat_"+ req.params.cat +"/post/"+post_id)
+})
 
 //         Accueil        //
 //           et           //

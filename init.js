@@ -1,6 +1,6 @@
 const {openDb} = require("./db")
 
-const tablesNames = ["categories","posts","users","commentaries"]
+const tablesNames = ["categories","posts","users","commentaries","pvotes","cvotes"]
 
 
 
@@ -13,23 +13,24 @@ async function createCategories(db){
 }
 
 async function createCommentaries(db){
-  const insertRequest = await db.prepare("INSERT INTO commentaries(p_id, content, author_id) VALUES(?, ?, ?)")
+  const insertRequest = await db.prepare("INSERT INTO commentaries(p_id, content, com_date, author_id) VALUES(?, ?, ?, ?)")
   const comms = [{
     p_id: 1,
     content: "Excellent site pour faire des recherches!",
+    com_date: "2021-05-15 12:00:00",
     author_id: 2
   }
   ]
   return await Promise.all(comms.map(commentary => {
-    return insertRequest.run([commentary.p_id, commentary.content, commentary.author_id])
+    return insertRequest.run([commentary.p_id, commentary.content, commentary.com_date, commentary.author_id])
   }))
 }
 
 async function createPosts(db){
   const insertRequest = await db.prepare("INSERT INTO posts(name, content, category, post_date, author_id) VALUES(?, ?, ?, ?, ?)")
   const contents = [{
-    name: "Post de test",
-    content: "Voici le premier article",
+    name: "Vous connaissez google?",
+    content: "https://google.fr",
     category: 1,
     post_date: "2021-05-15 12:00:00",
     author_id: 1
@@ -65,6 +66,29 @@ async function createUsers(db){
   }))
 }
 
+async function createPVotes(db){
+  const insertRequest = await db.prepare("INSERT INTO pvotes(post_id, user_id, vote) VALUES(?, ?, ?)")
+  const pvotes = [{
+    post_id: 1,
+    user_id: 2,
+    vote: 1
+  } ]
+  return await Promise.all(pvotes.map(pvote => {
+    return insertRequest.run([pvote.post_id, pvote.user_id, pvote.vote])
+  }))
+}
+
+async function createCVotes(db){
+  const insertRequest = await db.prepare("INSERT INTO cvotes(comm_id, user_id, vote) VALUES(?, ?, ?)")
+  const cvotes = [{
+    comm_id: 1,
+    user_id: 1,
+    vote: 1
+  } ]
+  return await Promise.all(cvotes.map(cvote => {
+    return insertRequest.run([cvote.comm_id, cvote.user_id, cvote.vote])
+  }))
+}
 
 
 async function createTables(db){
@@ -92,6 +116,7 @@ async function createTables(db){
       content text,
       post_date smalldatetime,
       author_id integer,
+      votes integer DEFAULT 0,
       FOREIGN KEY(author_id) REFERENCES users(user_id),
       FOREIGN KEY(category) REFERENCES categories(cat_id)
     );
@@ -104,12 +129,33 @@ async function createTables(db){
       content text,
       author_id integer,
       com_date smalldatetime,
+      votes integer DEFAULT 0,
       FOREIGN KEY(p_id) REFERENCES categories(id),
       FOREIGN KEY(author_id) REFERENCES users(user_id)
     );
-`)
+  `)
+  
+  const pvote = db.run(`
+    CREATE TABLE pvotes (
+      post_id integer,
+      user_id integer,
+      vote integer,
+      FOREIGN KEY(post_id) REFERENCES posts(id),
+      FOREIGN KEY(user_id) REFERENCES users(user_id)
+    );
+  `)
 
-  return await Promise.all([cat,post,user,commentary])
+  const cvote = db.run(`
+    CREATE TABLE cvotes (
+      comm_id integer,
+      user_id integer,
+      vote integer,
+      FOREIGN KEY(comm_id) REFERENCES commentaries(p_id),
+      FOREIGN KEY(user_id) REFERENCES users(user_id)
+    );
+  `)
+
+  return await Promise.all([cat,post,user,commentary,pvote,cvote])
 }
 
 
@@ -129,4 +175,6 @@ async function dropTables(db){
   await createPosts(db)
   await createUsers(db)
   await createCommentaries(db)
+  await createPVotes(db)
+  await createCVotes(db)
 })()

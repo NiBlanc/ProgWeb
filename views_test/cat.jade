@@ -1,27 +1,28 @@
 extend layout
 
 block main
-    div.row
-        div.col 
-            div.bg-light.p-5
-                div.container
-                    h1.text-center=categoryActive ? categoryActive.cat_name : "Accueil"
-            form(action="cat_" + cat_id + "/post/create" method="GET")
-                        input(type="Submit" value="Nouvel article")
-    div.row.mt-5
-        div.col
-            each postToRow, index in posts
-                if index % 3 === 0
-                div.row
-                    each indexToSearch in [index, index + 1, index + 2]
-                        if posts[indexToSearch]
-                            div.col
-                                a(href= "cat_" + cat_id + "/post/" + posts[indexToSearch].id)
-                                    h4=posts[indexToSearch].name
-                                    if !categoryActive
-                                        span.badge.rounded-pill.bg-primary=posts[indexToSearch].cat_name
-                                    span.badge.rounded-pill.bg-secondary=posts[indexToSearch].author_id
-                                    span.badge.rounded-pill.bg-secondary=posts[indexToSearch].post_date
-                                    p=posts[indexToSearch].content
-            if posts.length <= 0
-                div.col
+    div.container-sm
+        div.row
+            div.col 
+                div.bg-light.p-5
+                    div.container
+                        h1.text-center=categoryActive.cat_name
+                form(action="cat_" + cat_id + "/post/create" method="GET")
+                            input(type="Submit" value="Nouvel article")
+        div.row.mt-5
+            div.col
+                each postToRow, index in posts
+                    if index % 3 === 0
+                    div.row
+                        each indexToSearch in [index, index + 1, index + 2]
+                            if posts[indexToSearch]
+                                div.col
+                                    a(href= "cat_" + cat_id + "/post/" + posts[indexToSearch].id)
+                                        h4=posts[indexToSearch].name
+                                        if !categoryActive
+                                            span.badge.rounded-pill.bg-primary=posts[indexToSearch].cat_name
+                                        span.badge.rounded-pill.bg-secondary=posts[indexToSearch].author_id
+                                        span.badge.rounded-pill.bg-secondary=posts[indexToSearch].post_date
+                                        p=posts[indexToSearch].content
+                if posts.length <= 0
+                    div.col
