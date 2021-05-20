@@ -268,6 +268,8 @@ app.post('/category/create', async (req, res) => {
 })
 
 
+
+
 //                      //
 //  Création de posts   //
 //                      //
@@ -432,11 +434,135 @@ app.post('/cat_:cat?/post/:id/comment', async (req, res) => {
   res.redirect("/cat_"+ req.params.cat +"/post/"+post_id)
 })
 
+//Editer un post
+app.get('/cat_:cat?/post/:id/edit', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
 
+  const db = await openDb()
 
+  const categories = await db.all(`
+  SELECT * FROM categories
+`)
 
+  const cat = await db.all(`
+  SELECT * FROM categories 
+  WHERE cat_id=?
+`,[req.params.cat])
 
+  const post = await db.get(`
+  SELECT * FROM posts
+  LEFT JOIN categories on categories.cat_id = posts.category
+  WHERE id = ?
+  `,[req.params.id])
 
+  res.render("post-edit",{cat_id: req.params.cat, post_id: req.params.id, cat_name:cat[0].cat_name, categories:categories, post:post})
+})
+
+app.post('/cat_:cat?/post/:id/edit', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+
+  const db = await openDb()
+  const name = req.body.name
+  const content = req.body.content
+  const category = req.body.category
+  cat_id=req.params.cat
+  id=req.params.id
+
+  var date = new Date()
+  newdate =date.toISOString().slice(0, 19).replace('T', ' ')      //Pour convertir date format JS en format SQL
+
+  let data={}
+
+  const dbpost = await db.all(`
+  SELECT * FROM posts 
+  WHERE name=?
+`,[name])
+  if(name==0) {
+    data={
+      errors: "Veuillez rentrer un nom à l'article"
+    }
+  }
+
+  else if( (dbpost.length>0) && (dbpost[0].id!=id)) {
+    data={
+      errors: "Le nom de l'article est déjà utilisé"
+    } 
+  }
+
+  else if(content==0) {
+    data={
+      errors: "Veuillez rentrer du texte"
+    } 
+  }
+  else if(dbpost[0].author_id=req.session.uid){
+    data={
+      errors: "Vous n'avez pas la permission"
+    } 
+  }
+
+  else{
+    const post = await db.run(`
+      UPDATE posts
+      SET name = ?, content = ?, post_date=?
+      WHERE id = ?
+    `,[name, content, newdate, id])
+
+    res.redirect("/cat_"+ req.params.cat +"/post/"+id)
+    return
+  }
+
+  const categories = await db.all(`
+    SELECT * FROM categories
+  `)
+  const cat = await db.all(`
+    SELECT * FROM categories 
+    WHERE cat_id=?
+  `,[req.params.cat])
+
+  const post = await db.get(`
+    SELECT * FROM posts 
+    WHERE id=?
+  `,[req.params.id])
+
+  res.render("post-edit",{cat_id: req.params.cat, cat_name:cat[0].cat_name, categories:categories, post:post, data})
+})
+
+//Supprimer un post
+app.post('/cat_:cat/post/:id/delete', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+  
+  const db = await openDb()
+  const id = req.params.id
+  const cat = req.params.cat
+
+  const post = await db.get(`
+    SELECT * FROM posts
+    WHERE id=?
+  `,[req.params.id])
+
+  if(post.author_id==req.session.uid){
+    await db.run(`
+      DELETE FROM posts
+      WHERE id = ?
+    `,[id])
+
+    await db.run(`
+      DELETE FROM commentaries
+      WHERE p_id = ?
+    `,[id])
+  }
+
+  res.redirect("/cat_"+cat)
+})
 
 
 
@@ -676,22 +802,26 @@ app.post('/cat_:cat?/post/:id/downvote', async (req, res) => {
 
 
 
-/*
+
 //                            //
 //    Votes de Commentaires   //
 //                            //
 
 //Upvote un commentaire
-app.post('/cat_:cat?/post/:id/comm/upvote', async (req, res) => {
+app.post('/cat_:cat?/post/:pid/comment/upvote', async (req, res) => {
   if(!req.session.logged){
     res.redirect(302,'/login')
     return
   }
   const db = await openDb()
   cat_id=req.params.cat
-  post_id=req.params.id
-  const comm_id = req.body.id
-
+  post_id=req.params.pid
+  const comm_id = req.params.id
+  console.log({post_id})
+  console.log({cat_id})
+  console.log(req.params)
+  console.log({com_id})
+/*
   const voted = await db.all(`
   SELECT * FROM cvotes
   WHERE post_id=?
@@ -750,12 +880,11 @@ app.post('/cat_:cat?/post/:id/comm/upvote', async (req, res) => {
     UPDATE posts
     SET interactions = ?
     WHERE id = ?
-  `,[pvotes.length+cvotes.length+comms.length,post_id])
+  `,[pvotes.length+cvotes.length+comms.length,post_id])*/
 
   res.redirect("/cat_"+ req.params.cat +"/post/"+post_id)
 })
 
-*/
 
 //         Accueil        //
 //           et           //
@@ -777,11 +906,11 @@ app.get('/', async (req, res) => {              //Page d'accueil du site
   newdate =date.toISOString().slice(0, 19).replace('T', ' ')
 
   posts_l = await db.all(`
-    SELECT * FROM posts
-    JOIN categories ON categories.cat_id = posts.category
-    JOIN users ON users.user_id = posts.author_id
-    WHERE post_date >= datetime('now','-1 day')
-    ORDER BY interactions
+      SELECT * FROM posts
+      JOIN categories ON categories.cat_id = posts.category
+      JOIN users ON users.user_id = posts.author_id
+      WHERE post_date >= datetime('now','-1 day')
+      ORDER BY interactions DESC
   `)
   console.log(posts_l)
 

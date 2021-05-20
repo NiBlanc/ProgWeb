@@ -8,18 +8,29 @@ block main
                         h1.text-center=categoryActive ? categoryActive.cat_name : "Accueil"
 
                     div.container
-                        each postToRow, index in posts_l
-                            if index % 3 === 0
-                                div.row
-                                    each indexToSearch in [index, index + 1, index + 2]
-                                        if posts_l[indexToSearch]
-                                            div.col
-                                                .a(href="/cat_" + posts_l[indexToSearch].cat_id + "/post/" + posts_l[indexToSearch].id)
-                                                    h2=posts_l[indexToSearch].name
-                                                if !categoryActive
-                                                    span.badge.rounded-pill.bg-primary=posts_l[indexToSearch].cat_name
-                                                span.badge.rounded-pill.bg-primary=posts_l[indexToSearch].login
-                                                span.badge.bg-secondary=posts_l[indexToSearch].post_date
-                                                span.badge.bg-secondary=posts_l[indexToSearch].votes
-                                                    |   Votes  
-                                                    
+                        div.row
+                            div.col
+                                h2.p-5 Posts avec le plus d'interactions des dernières 24 heures
+                                each postToRow, index in posts_l
+                                    div.p-1                       
+                                        a(href="/cat_" + posts_l[index].cat_id + "/post/" + posts_l[index].id)
+                                            h3=posts_l[index].name
+                                        if !categoryActive
+                                            span.badge.rounded-pill.bg-primary=posts_l[index].cat_name
+                                        span.badge.rounded-pill.bg-primary=posts_l[index].login
+                                        span.badge.bg-secondary=posts_l[index].post_date
+                                        span.badge.bg-secondary=posts_l[index].votes
+                                            |   Votes
+                                        p=posts_l[index].content
+                            div.col    
+                                h2.p-5 Ce que vous avez manqué
+                                //each postToRow, index in posts_l
+                                    div.p-1                       
+                                        .a(href="/cat_" + posts_l[index].cat_id + "/post/" + posts_l[index].id)
+                                            h3=posts_l[index].name
+                                        if !categoryActive
+                                            span.badge.rounded-pill.bg-primary=posts_l[index].cat_name
+                                        span.badge.rounded-pill.bg-primary=posts_l[index].login
+                                        span.badge.bg-secondary=posts_l[index].post_date
+                                        span.badge.bg-secondary=posts_l[index].votes
+                                            |   Votes
