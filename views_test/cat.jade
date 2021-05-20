@@ -7,7 +7,7 @@ block main
                 div.bg-light.p-5
                     div.container
                         h1.text-center=categoryActive.cat_name
-                form(action="cat_" + cat_id + "/post/create" method="GET")
+                form(action="../cat_" + cat_id + "/post/create" method="GET")
                             input(type="Submit" value="Nouvel article")
         div.row.mt-5
             div.col

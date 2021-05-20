@@ -379,11 +379,7 @@ app.get('/cat_:cat?/post/:id', async (req, res) => {
     WHERE p_id = ?
     ORDER BY com_date DESC
   `,[id])
-  let table=[]
-  for(let i=0;i < comm.length ;i++){
-    table.push(i)
-  }
-  res.render("post",{post: post,categories: categories, comm: comm,table: table})
+  res.render("post",{post: post,categories: categories, comm: comm})
 })
 
 //Commenter un post
@@ -392,7 +388,6 @@ app.post('/cat_:cat?/post/:id/comment', async (req, res) => {
     res.redirect(302,'/login')
     return
   }
-  console.log(req.body)
   const db = await openDb()
   const comment = req.body.comment
   cat_id=req.params.cat
@@ -410,8 +405,45 @@ app.post('/cat_:cat?/post/:id/comment', async (req, res) => {
       VALUES(?, ?, ?, ?)
     `,[comment, post_id, req.session.uid, newdate])
   }
+
+  // Update du champ interactions
+  const pvotes=await db.all(`
+  SELECT * FROM pvotes
+  WHERE post_id=?
+  `,[post_id])
+
+  const cvotes=await db.all(`
+  SELECT * FROM cvotes
+  JOIN commentaries ON commentaries.com_id = comm_id
+  WHERE p_id=?
+  `,[post_id])
+
+  const comms=await db.all(`  
+  SELECT * FROM commentaries
+  WHERE p_id=?
+  `,[post_id])
+  
+  await db.get(`
+    UPDATE posts
+    SET interactions = ?
+    WHERE id = ?
+  `,[pvotes.length+cvotes.length+comms.length,post_id])
+
   res.redirect("/cat_"+ req.params.cat +"/post/"+post_id)
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //                      //
 //    Votes de posts    //
@@ -453,14 +485,14 @@ app.post('/cat_:cat?/post/:id/upvote', async (req, res) => {
   }
 
   //On compte le nombre de votes
-  const votes=await db.all(`
+  const pvotes=await db.all(`
   SELECT * FROM pvotes
   WHERE post_id=?
   `,[post_id])
 
   let count=0
-  for(let i=0;i<votes.length;i++){
-    count=count+votes[i].vote
+  for(let i=0;i<pvotes.length;i++){
+    count=count+pvotes[i].vote
   }
 
   await db.get(`
@@ -468,6 +500,25 @@ app.post('/cat_:cat?/post/:id/upvote', async (req, res) => {
     SET votes = ?
     WHERE id = ?
   `,[count,post_id])
+
+  // Update du champ interactions
+  const cvotes=await db.all(`
+  SELECT * FROM cvotes
+  JOIN commentaries ON commentaries.com_id = comm_id
+  WHERE p_id=?
+  `,[post_id])
+
+  const comms=await db.all(`  
+  SELECT * FROM commentaries
+  WHERE p_id=?
+  `,[post_id])
+  
+  await db.get(`
+    UPDATE posts
+    SET interactions = ?
+    WHERE id = ?
+  `,[pvotes.length+cvotes.length+comms.length,post_id])
+
   res.redirect("/cat_"+ req.params.cat +"/post/"+post_id)
 })
 
@@ -507,14 +558,14 @@ app.post('/cat_:cat?/post/:id/unvote', async (req, res) => {
   }
 
   //On compte le nombre de votes
-  const votes=await db.all(`
+  const pvotes=await db.all(`
   SELECT * FROM pvotes
   WHERE post_id=?
   `,[post_id])
 
   let count=0
-  for(let i=0;i<votes.length;i++){
-    count=count+votes[i].vote
+  for(let i=0;i<pvotes.length;i++){
+    count=count+pvotes[i].vote
   }
 
   await db.get(`
@@ -522,6 +573,25 @@ app.post('/cat_:cat?/post/:id/unvote', async (req, res) => {
     SET votes = ?
     WHERE id = ?
   `,[count,post_id])
+
+  // Update du champ interactions
+  const cvotes=await db.all(`
+  SELECT * FROM cvotes
+  JOIN commentaries ON commentaries.com_id = comm_id
+  WHERE p_id=?
+  `,[post_id])
+
+  const comms=await db.all(`  
+  SELECT * FROM commentaries
+  WHERE p_id=?
+  `,[post_id])
+  
+  await db.get(`
+    UPDATE posts
+    SET interactions = ?
+    WHERE id = ?
+  `,[pvotes.length+cvotes.length+comms.length,post_id])
+
   res.redirect("/cat_"+ req.params.cat +"/post/"+post_id)
 })
 
@@ -560,14 +630,14 @@ app.post('/cat_:cat?/post/:id/downvote', async (req, res) => {
   }
 
   //On compte le nombre de votes
-  const votes=await db.all(`
+  const pvotes=await db.all(`
   SELECT * FROM pvotes
   WHERE post_id=?
   `,[post_id])
 
   let count=0
-  for(let i=0;i<votes.length;i++){
-    count=count+votes[i].vote
+  for(let i=0;i<pvotes.length;i++){
+    count=count+pvotes[i].vote
   }
 
   await db.get(`
@@ -575,8 +645,117 @@ app.post('/cat_:cat?/post/:id/downvote', async (req, res) => {
     SET votes = ?
     WHERE id = ?
   `,[count,post_id])
+
+  // Update du champ interactions
+  const cvotes=await db.all(`
+  SELECT * FROM cvotes
+  JOIN commentaries ON commentaries.com_id = comm_id
+  WHERE p_id=?
+  `,[post_id])
+
+  const comms=await db.all(`  
+  SELECT * FROM commentaries
+  WHERE p_id=?
+  `,[post_id])
+  
+  await db.get(`
+    UPDATE posts
+    SET interactions = ?
+    WHERE id = ?
+  `,[pvotes.length+cvotes.length+comms.length,post_id])
+
   res.redirect("/cat_"+ req.params.cat +"/post/"+post_id)
 })
+
+
+
+
+
+
+
+
+
+
+/*
+//                            //
+//    Votes de Commentaires   //
+//                            //
+
+//Upvote un commentaire
+app.post('/cat_:cat?/post/:id/comm/upvote', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+  const db = await openDb()
+  cat_id=req.params.cat
+  post_id=req.params.id
+  const comm_id = req.body.id
+
+  const voted = await db.all(`
+  SELECT * FROM cvotes
+  WHERE post_id=?
+  AND user_id=?
+  `,[post_id,req.session.uid])
+
+  if(voted.length==0){
+    //Si le vote n'existe pas on le crée
+    const vote = await db.run(`
+      INSERT INTO pvotes(post_id,user_id,vote)
+      VALUES(?, ?, ?)
+    `,[post_id, req.session.uid, 1])
+
+
+  }
+  else if(voted.vote!=1){
+    //Si le vote est différent on l'update
+    await db.get(`
+    UPDATE pvotes
+    SET vote = ?
+    WHERE post_id = ?
+    AND user_id = ?
+  `,[1,post_id,req.session.uid])
+  }
+
+  //On compte le nombre de votes
+  const pvotes=await db.all(`
+  SELECT * FROM pvotes
+  WHERE post_id=?
+  `,[post_id])
+
+  let count=0
+  for(let i=0;i<pvotes.length;i++){
+    count=count+pvotes[i].vote
+  }
+
+  await db.get(`
+    UPDATE posts
+    SET votes = ?
+    WHERE id = ?
+  `,[count,post_id])
+
+  // Update du champ interactions
+  const cvotes=await db.all(`
+  SELECT * FROM cvotes
+  JOIN commentaries ON commentaries.com_id = comm_id
+  WHERE p_id=?
+  `,[post_id])
+
+  const comms=await db.all(`  
+  SELECT * FROM commentaries
+  WHERE p_id=?
+  `,[post_id])
+  
+  await db.get(`
+    UPDATE posts
+    SET interactions = ?
+    WHERE id = ?
+  `,[pvotes.length+cvotes.length+comms.length,post_id])
+
+  res.redirect("/cat_"+ req.params.cat +"/post/"+post_id)
+})
+
+*/
 
 //         Accueil        //
 //           et           //
@@ -593,12 +772,20 @@ app.get('/', async (req, res) => {              //Page d'accueil du site
     SELECT * FROM categories
   `)
   let posts = []
-  posts = await db.all(`
-    SELECT * FROM posts
-    LEFT JOIN categories on categories.cat_id = posts.category
-  `)
 
-  res.render("home",{categories: categories, posts: posts, logged: req.session.logged})
+  var date = new Date()
+  newdate =date.toISOString().slice(0, 19).replace('T', ' ')
+
+  posts_l = await db.all(`
+    SELECT * FROM posts
+    JOIN categories ON categories.cat_id = posts.category
+    JOIN users ON users.user_id = posts.author_id
+    WHERE post_date >= datetime('now','-1 day')
+    ORDER BY interactions
+  `)
+  console.log(posts_l)
+
+  res.render("home",{categories: categories, posts_l: posts_l , logged: req.session.logged})
 })
 
 app.get('/cat_:cat?', async (req, res) => {               //Page correspondant à une catégorie
@@ -616,10 +803,10 @@ app.get('/cat_:cat?', async (req, res) => {               //Page correspondant �
 
   posts = await db.all(`
     SELECT * FROM posts
-    LEFT JOIN categories on categories.cat_id = posts.category
+    JOIN categories ON categories.cat_id = posts.category
+    JOIN users ON users.user_id = posts.author_id
     WHERE category = ?
   `, [categoryActive])
-  console.log(posts)
   //res.render("categories", {logged: req.session.logged})
   res.render("cat",{categories: categories, categoryActive: categoryObjectActive, posts: posts, logged: req.session.logged, cat_id: req.params.cat})
 })

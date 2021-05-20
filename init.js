@@ -117,6 +117,7 @@ async function createTables(db){
       post_date smalldatetime,
       author_id integer,
       votes integer DEFAULT 0,
+      interactions integer DEFAULT 0,
       FOREIGN KEY(author_id) REFERENCES users(user_id),
       FOREIGN KEY(category) REFERENCES categories(cat_id)
     );
@@ -150,7 +151,7 @@ async function createTables(db){
       comm_id integer,
       user_id integer,
       vote integer,
-      FOREIGN KEY(comm_id) REFERENCES commentaries(p_id),
+      FOREIGN KEY(comm_id) REFERENCES commentaries(com_id),
       FOREIGN KEY(user_id) REFERENCES users(user_id)
     );
   `)

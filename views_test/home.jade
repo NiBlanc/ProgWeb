@@ -6,3 +6,20 @@ block main
                 div.bg-light.p-5
                     div.container
                         h1.text-center=categoryActive ? categoryActive.cat_name : "Accueil"
+
+                    div.container
+                        each postToRow, index in posts_l
+                            if index % 3 === 0
+                                div.row
+                                    each indexToSearch in [index, index + 1, index + 2]
+                                        if posts_l[indexToSearch]
+                                            div.col
+                                                .a(href="/cat_" + posts_l[indexToSearch].cat_id + "/post/" + posts_l[indexToSearch].id)
+                                                    h2=posts_l[indexToSearch].name
+                                                if !categoryActive
+                                                    span.badge.rounded-pill.bg-primary=posts_l[indexToSearch].cat_name
+                                                span.badge.rounded-pill.bg-primary=posts_l[indexToSearch].login
+                                                span.badge.bg-secondary=posts_l[indexToSearch].post_date
+                                                span.badge.bg-secondary=posts_l[indexToSearch].votes
+                                                    |   Votes  
+                                                    
