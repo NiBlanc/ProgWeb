@@ -51,10 +51,10 @@ block main
                                     h3.span.badge.bg-secondary=comm[index].votes
                                         |   Votes                                 
                                     .btn-group(role='group' aria-label='Basic example')
-                                        form(action=("../post/"+post.id+"/comment/upvote") method="POST")
-                                            button.btn.btn-primary.btn-sm(id="1" type='submit') Upvote
-                                        form(action=("../post/"+post.id+"/unvote") method="POST")
-                                            button.btn.btn-primary.btn-sm(id=comm[index].com_id type='submit') Unvote
-                                        form(action=("../post/"+post.id+"/downvote") method="POST")
-                                            button.btn.btn-primary.btn-sm(id=comm[index].com_id type='submit') Downvote
-                                    p=comm[index].content                    
+                                        form(action=("../post/"+post.id+"/comment/"+ comm[index].com_id + "/upvote") method="POST")
+                                            button.btn.btn-primary.btn-sm(type='submit') Upvote
+                                        form(action=("../post/"+post.id+"/comment/"+ comm[index].com_id + "/unvote") method="POST")
+                                            button.btn.btn-primary.btn-sm(type='submit') Unvote
+                                        form(action=("../post/"+post.id+"/comment/"+ comm[index].com_id + "/downvote") method="POST")
+                                            button.btn.btn-primary.btn-sm(type='submit') Downvote
+                                    p=comm[index].content                

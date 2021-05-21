@@ -173,6 +173,7 @@ app.post('/login', async(req, res) => {
     `,[username])
   }
 
+  console.log(users)
 
   if(users.length==0) {
     data = {
@@ -479,10 +480,17 @@ app.post('/cat_:cat?/post/:id/edit', async (req, res) => {
 
   let data={}
 
+  const post_test = await db.get(`
+  SELECT * FROM posts 
+  WHERE id=?
+`,[id])
+
   const dbpost = await db.all(`
   SELECT * FROM posts 
   WHERE name=?
 `,[name])
+  console.log(dbpost)
+  console.log(post_test)
   if(name==0) {
     data={
       errors: "Veuillez rentrer un nom à l'article"
@@ -500,7 +508,7 @@ app.post('/cat_:cat?/post/:id/edit', async (req, res) => {
       errors: "Veuillez rentrer du texte"
     } 
   }
-  else if(dbpost[0].author_id=req.session.uid){
+  else if(post_test.author_id!=req.session.uid){
     data={
       errors: "Vous n'avez pas la permission"
     } 
@@ -808,63 +816,142 @@ app.post('/cat_:cat?/post/:id/downvote', async (req, res) => {
 //                            //
 
 //Upvote un commentaire
-app.post('/cat_:cat?/post/:pid/comment/upvote', async (req, res) => {
+app.post('/cat_:cat?/post/:id/comment/:c_id/upvote', async (req, res) => {
   if(!req.session.logged){
     res.redirect(302,'/login')
     return
   }
   const db = await openDb()
   cat_id=req.params.cat
-  post_id=req.params.pid
-  const comm_id = req.params.id
-  console.log({post_id})
-  console.log({cat_id})
-  console.log(req.params)
-  console.log({com_id})
-/*
+  post_id=req.params.id
+  comm_id=req.params.c_id
+
+  console.log(comm_id)
   const voted = await db.all(`
   SELECT * FROM cvotes
-  WHERE post_id=?
+  WHERE comm_id=?
   AND user_id=?
-  `,[post_id,req.session.uid])
+  `,[comm_id,req.session.uid])
 
   if(voted.length==0){
     //Si le vote n'existe pas on le crée
     const vote = await db.run(`
-      INSERT INTO pvotes(post_id,user_id,vote)
+      INSERT INTO cvotes(comm_id,user_id,vote)
       VALUES(?, ?, ?)
-    `,[post_id, req.session.uid, 1])
-
-
+    `,[comm_id, req.session.uid, 1])
   }
+
   else if(voted.vote!=1){
     //Si le vote est différent on l'update
     await db.get(`
-    UPDATE pvotes
+    UPDATE cvotes
     SET vote = ?
-    WHERE post_id = ?
+    WHERE comm_id = ?
     AND user_id = ?
-  `,[1,post_id,req.session.uid])
+  `,[1,comm_id,req.session.uid])
   }
 
   //On compte le nombre de votes
+  const cvote=await db.all(`
+  SELECT * FROM cvotes
+  WHERE comm_id=?
+  `,[comm_id])
+
+  let count=0
+  for(let i=0;i<cvote.length;i++){
+    count=count+cvote[i].vote
+  }
+
+  await db.get(`
+    UPDATE commentaries
+    SET votes = ?
+    WHERE com_id = ?
+  `,[count,comm_id])
+
+  // Update du champ interactions
   const pvotes=await db.all(`
   SELECT * FROM pvotes
   WHERE post_id=?
   `,[post_id])
 
-  let count=0
-  for(let i=0;i<pvotes.length;i++){
-    count=count+pvotes[i].vote
-  }
+  const cvotes=await db.all(`
+  SELECT * FROM cvotes
+  JOIN commentaries ON commentaries.com_id = comm_id
+  WHERE p_id=?
+  `,[post_id])
+
+  const comms=await db.all(`  
+  SELECT * FROM commentaries
+  WHERE p_id=?
+  `,[post_id])
 
   await db.get(`
     UPDATE posts
-    SET votes = ?
+    SET interactions = ?
     WHERE id = ?
-  `,[count,post_id])
+  `,[pvotes.length+cvotes.length+comms.length,post_id])
+  res.redirect("/cat_"+ req.params.cat +"/post/"+post_id)
+})
+
+//Unvote un commentaire
+app.post('/cat_:cat?/post/:id/comment/:c_id/unvote', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+  const db = await openDb()
+  cat_id=req.params.cat
+  post_id=req.params.id
+  comm_id=req.params.c_id
+
+  console.log(comm_id)
+  const voted = await db.all(`
+  SELECT * FROM cvotes
+  WHERE comm_id=?
+  AND user_id=?
+  `,[comm_id,req.session.uid])
+
+  if(voted.length==0){
+    //Si le vote n'existe pas on le crée
+    const vote = await db.run(`
+      INSERT INTO cvotes(comm_id,user_id,vote)
+      VALUES(?, ?, ?)
+    `,[comm_id, req.session.uid, 0])
+  }
+
+  else if(voted.vote!=1){
+    //Si le vote est différent on l'update
+    await db.get(`
+    UPDATE cvotes
+    SET vote = ?
+    WHERE comm_id = ?
+    AND user_id = ?
+  `,[0,comm_id,req.session.uid])
+  }
+
+//On compte le nombre de votes
+  const cvote=await db.all(`
+  SELECT * FROM cvotes
+  WHERE comm_id=?
+  `,[comm_id])
+
+  let count=0
+  for(let i=0;i<cvote.length;i++){
+    count=count+cvote[i].vote
+  }
+
+  await db.get(`
+    UPDATE commentaries
+    SET votes = ?
+    WHERE com_id = ?
+  `,[count,comm_id])
 
   // Update du champ interactions
+  const pvotes=await db.all(`
+  SELECT * FROM pvotes
+  WHERE post_id=?
+  `,[post_id])
+
   const cvotes=await db.all(`
   SELECT * FROM cvotes
   JOIN commentaries ON commentaries.com_id = comm_id
@@ -880,11 +967,88 @@ app.post('/cat_:cat?/post/:pid/comment/upvote', async (req, res) => {
     UPDATE posts
     SET interactions = ?
     WHERE id = ?
-  `,[pvotes.length+cvotes.length+comms.length,post_id])*/
-
+  `,[pvotes.length+cvotes.length+comms.length,post_id])
   res.redirect("/cat_"+ req.params.cat +"/post/"+post_id)
 })
 
+
+//Downvote un commentaire
+app.post('/cat_:cat?/post/:id/comment/:c_id/downvote', async (req, res) => {
+  if(!req.session.logged){
+    res.redirect(302,'/login')
+    return
+  }
+  const db = await openDb()
+  cat_id=req.params.cat
+  post_id=req.params.id
+  comm_id=req.params.c_id
+
+  console.log(comm_id)
+  const voted = await db.all(`
+  SELECT * FROM cvotes
+  WHERE comm_id=?
+  AND user_id=?
+  `,[comm_id,req.session.uid])
+
+  if(voted.length==0){
+    //Si le vote n'existe pas on le crée
+    const vote = await db.run(`
+      INSERT INTO cvotes(comm_id,user_id,vote)
+      VALUES(?, ?, ?)
+    `,[comm_id, req.session.uid, -1])
+  }
+
+  else if(voted.vote!=1){
+    //Si le vote est différent on l'update
+    await db.get(`
+    UPDATE cvotes
+    SET vote = ?
+    WHERE comm_id = ?
+    AND user_id = ?
+  `,[-1,comm_id,req.session.uid])
+  }
+
+  //On compte le nombre de votes
+  const cvote=await db.all(`
+  SELECT * FROM cvotes
+  WHERE comm_id=?
+  `,[comm_id])
+
+  let count=0
+  for(let i=0;i<cvote.length;i++){
+    count=count+cvote[i].vote
+  }
+
+  await db.get(`
+    UPDATE commentaries
+    SET votes = ?
+    WHERE com_id = ?
+  `,[count,comm_id])
+
+  // Update du champ interactions
+  const pvotes=await db.all(`
+  SELECT * FROM pvotes
+  WHERE post_id=?
+  `,[post_id])
+
+  const cvotes=await db.all(`
+  SELECT * FROM cvotes
+  JOIN commentaries ON commentaries.com_id = comm_id
+  WHERE p_id=?
+  `,[post_id])
+
+  const comms=await db.all(`  
+  SELECT * FROM commentaries
+  WHERE p_id=?
+  `,[post_id])
+
+  await db.get(`
+    UPDATE posts
+    SET interactions = ?
+    WHERE id = ?
+  `,[pvotes.length+cvotes.length+comms.length,post_id])
+  res.redirect("/cat_"+ req.params.cat +"/post/"+post_id)
+})
 
 //         Accueil        //
 //           et           //
