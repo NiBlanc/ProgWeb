@@ -7,7 +7,7 @@ block main
                     div.header.p-5
                         nav.d-flex.justify-content-between.align-items-center
                             form(method='get' action='../')
-                                button.btn.btn-primary.btn-lg(type='submit')=post.cat_name
+                                button.btn.btn-primary.btn-sm(type='submit')=post.cat_name
                             form(action="../post/create" method="GET")
                                 button.btn.btn-primary.btn-sm(type='submit') Nouvel article
                             form(action="../post/"+post.id+"/edit" method="GET")
@@ -26,11 +26,11 @@ block main
                                     |   Votes                              
                                 .btn-group(role='group' aria-label='Basic example')
                                     form(action=("../post/"+post.id+"/upvote") method="POST")
-                                        button.btn.btn-primary.btn-sm(type='submit') Upvote
+                                        button.btn.btn-outline-primary(type='submit') Upvote
                                     form(action=("../post/"+post.id+"/unvote") method="POST")
-                                        button.btn.btn-primary.btn-sm(type='submit') Unvote
+                                        button.btn.btn-outline-primary(type='submit') Unvote
                                     form(action=("../post/"+post.id+"/downvote") method="POST")
-                                        button.btn.btn-primary.btn-sm(type='submit') Downvote
+                                        button.btn.btn-outline-primary(type='submit') Downvote
                             .card-body.text-dark
                                 p=post.content      
             div.row.p-1
@@ -57,10 +57,10 @@ block main
                                                     |   Votes
                                                 .btn-group(role='group' aria-label='Basic example')
                                                     form(action=("../post/"+post.id+"/comment/"+ comm[index].com_id + "/upvote") method="POST")
-                                                        button.btn.btn-primary.btn-sm(type='submit') Upvote
+                                                        button.btn.btn-outline-primary(type='submit') Upvote
                                                     form(action=("../post/"+post.id+"/comment/"+ comm[index].com_id + "/unvote") method="POST")
-                                                        button.btn.btn-primary.btn-sm(type='submit') Unvote
+                                                        button.btn.btn-outline-primary(type='submit') Unvote
                                                     form(action=("../post/"+post.id+"/comment/"+ comm[index].com_id + "/downvote") method="POST")
-                                                        button.btn.btn-primary.btn-sm(type='submit') Downvote 
+                                                        button.btn.btn-outline-primary(type='submit') Downvote 
                                             .card-body.text-dark
                                                 p=comm[index].content             

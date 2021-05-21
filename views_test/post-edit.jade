@@ -39,11 +39,12 @@ block main
                         div.col
                             a(href="/cat_"+cat_id)
                                 button.btn.btn-secondary.btn-sm(type='button' style="height: 50px") Annuler
+                        div.col 
+                            form(action="/cat_"+cat_id+"/post/" + post.id +"/delete" method="POST")
+                                button.btn.btn-danger.btn-lg(type='Submit' style="height: 50px") Supprimer
                 div.row
                     textarea.form-control(id="content" name="content" style="height: 300px")=post.content
         if data
             div.p-2.alert.alert-danger
                 h4.text-center=data.errors
-        div.row
-            form(action="/cat_"+cat_id+"/post/" + post.id +"/delete" method="POST")
-                button.btn.btn-primary.btn-lg(type='Submit' style="height: 50px") Supprimer
+     
